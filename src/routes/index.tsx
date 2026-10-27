@@ -79,7 +79,7 @@ function Index() {
 
   return (
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
-      <video src={bg.url} autoPlay muted loop playsInline className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
+      <video src={bg.url} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
 
@@ -88,7 +88,7 @@ function Index() {
       </div>
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 sm:px-10">
-        <img src={logo.url} alt="AFRICA" className="h-15 w-auto sm:h-18" />
+        <img src={logo.url} alt="AFRICA" className="h-[90px] w-auto sm:h-[108px]" />
         {step >= 0 && !done && (
           <span className="font-display text-sm font-light tracking-[0.25em] text-muted-foreground">
             {String(step + 1).padStart(2, "0")} / {QUESTIONS.length}
