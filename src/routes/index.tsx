@@ -56,7 +56,9 @@ const QUESTIONS: Q[] = [
 ];
 
 function Index() {
-  const [step, setStep] = useState(-1);
+  const [step, setStep] = useState(-2);
+  const [showIntro, setShowIntro] = useState(true);
+  const [introFading, setIntroFading] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
@@ -72,6 +74,18 @@ function Index() {
   useEffect(() => {
     const audio = audioRef.current;
     if (audio) audio.play().catch(() => setMusicPlaying(false));
+  }, []);
+
+  useEffect(() => {
+    const fadeTimer = window.setTimeout(() => setIntroFading(true), 3300);
+    const finishTimer = window.setTimeout(() => {
+      setShowIntro(false);
+      setStep(0);
+    }, 4000);
+    return () => {
+      window.clearTimeout(fadeTimer);
+      window.clearTimeout(finishTimer);
+    };
   }, []);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
@@ -213,7 +227,7 @@ function Index() {
   }, [value, step]);
 
   useEffect(() => {
-    if (step !== -1) return;
+    if (step !== -1 || showIntro) return;
     const h = (e: KeyboardEvent) => e.key === "Enter" && go(0);
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
@@ -223,16 +237,22 @@ function Index() {
 
   return (
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
+      <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } }`}</style>
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
       <audio ref={audioRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
+      {showIntro && (
+        <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-700 ${introFading ? "opacity-0" : "opacity-100"}`}>
+          <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 1200ms ease-out both" }} />
+        </div>
+      )}
 
       <div className="absolute inset-x-0 top-0 z-20 h-1 bg-foreground/10">
         <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: `${progress}%` }} />
       </div>
 
-      <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 sm:px-10">
+      <header className={`absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 transition-opacity duration-500 sm:px-10 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <img src={logo} alt="AFRICA" className="h-[90px] w-auto sm:h-[108px]" />
         <div className="flex items-center gap-4">
           {step >= 0 && !done && (
@@ -363,7 +383,7 @@ function Index() {
         </div>
       </section>
 
-      <footer className="fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2">
+      <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <img
           src="/partners-transparent.png"
           alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
