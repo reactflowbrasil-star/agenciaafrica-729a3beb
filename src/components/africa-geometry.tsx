@@ -18,9 +18,13 @@ const CHAINS: number[][] = [
   [6, 8, 10, 14],
   [11, 13, 15],
   [12, 8, 9, 14],
+  [7, 13, 17],
+  [9, 14, 18],
+  [2, 6, 12],
+  [4, 9, 13],
 ];
 
-const STEP = 2.8;
+const STEP = 2.1;
 
 function chainPath(chain: number[]) {
   return chain
@@ -53,10 +57,6 @@ export function AfricaGeometry() {
               style={{ animationDelay: `${-i * STEP}s, ${-i * STEP}s` }}
             />
           ))}
-        </g>
-        <g className="geometry-trails">
-          <path d="M -200 640 C 260 430, 620 760, 1040 500 S 1500 250, 1760 380" pathLength={1} />
-          <path d="M -200 200 C 300 360, 700 120, 1120 300 S 1520 520, 1760 360" pathLength={1} />
         </g>
       </svg>
     </div>
