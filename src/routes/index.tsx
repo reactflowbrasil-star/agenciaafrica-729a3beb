@@ -60,11 +60,15 @@ function Index() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const voiceModeRef = useRef(false);
+  const stepRef = useRef(step);
   const [voiceStatus, setVoiceStatus] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
   const done = step >= QUESTIONS.length;
+  stepRef.current = step;
   const cur = QUESTIONS[step];
 
   const go = (next: number) => {
@@ -72,6 +76,7 @@ function Index() {
     setTimeout(() => {
       setStep(next);
       setValue(QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "");
+      voiceBaseValueRef.current = QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "";
       setLeaving(false);
     }, 450);
   };
@@ -84,23 +89,27 @@ function Index() {
   };
 
   useEffect(() => {
-    if (!leaving) setTimeout(() => inputRef.current?.focus(), 350);
-  }, [step, leaving]);
-
-  useEffect(() => {
-    return () => voiceRecognitionRef.current?.stop();
+    return () => {
+      voiceModeRef.current = false;
+      voiceRecognitionRef.current?.stop();
+    };
   }, []);
 
-  const toggleVoiceInput = () => {
-    if (isListening) {
-      voiceRecognitionRef.current?.stop();
-      setVoiceStatus("Finalizando transcrição…");
-      return;
-    }
+  const stopVoiceMode = () => {
+    voiceModeRef.current = false;
+    setVoiceMode(false);
+    voiceRecognitionRef.current?.stop();
+    voiceRecognitionRef.current = null;
+    setIsListening(false);
+    setVoiceStatus("Modo de voz desligado.");
+  };
 
+  const startVoiceRecognition = () => {
     const browserWindow = window as WindowWithVoiceRecognition;
     const Recognition = browserWindow.SpeechRecognition ?? browserWindow.webkitSpeechRecognition;
     if (!Recognition) {
+      voiceModeRef.current = false;
+      setVoiceMode(false);
       setVoiceStatus("Este navegador não oferece ditado ao vivo. Digite sua resposta ou use o Chrome.");
       return;
     }
@@ -121,7 +130,12 @@ function Index() {
           (result.isFinal ? finalSegments : interimSegments).push(transcript);
         }
         const spokenText = [...finalSegments, ...interimSegments].join(" ").trim();
-        setValue([voiceBaseValueRef.current, spokenText].filter(Boolean).join(" "));
+        const transcript = [voiceBaseValueRef.current, spokenText].filter(Boolean).join(" ");
+        setValue(transcript);
+        const question = QUESTIONS[stepRef.current];
+        if (question?.options && transcript.trim()) {
+          setAnswers((a) => ({ ...a, [question.id]: transcript.trim() }));
+        }
       };
       recognition.onerror = () => {
         setIsListening(false);
@@ -130,7 +144,13 @@ function Index() {
       recognition.onend = () => {
         voiceRecognitionRef.current = null;
         setIsListening(false);
-        setVoiceStatus("");
+        if (voiceModeRef.current && stepRef.current < QUESTIONS.length) {
+          window.setTimeout(() => {
+            if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+          }, 250);
+        } else {
+          setVoiceStatus("");
+        }
       };
       voiceRecognitionRef.current = recognition;
       recognition.start();
@@ -141,6 +161,17 @@ function Index() {
       setIsListening(false);
       setVoiceStatus("Não foi possível iniciar o microfone. Confira a permissão do navegador.");
     }
+  };
+
+  const toggleVoiceInput = () => {
+    if (voiceModeRef.current) {
+      stopVoiceMode();
+      return;
+    }
+    voiceModeRef.current = true;
+    setVoiceMode(true);
+    setVoiceStatus("Modo de voz ativo. Fale suas respostas; toque em Desligar voz para encerrar.");
+    startVoiceRecognition();
   };
 
   useEffect(() => {
@@ -201,6 +232,7 @@ function Index() {
               {cur.hint && <p className="mt-3 font-light text-lg text-muted-foreground">{cur.hint}</p>}
 
               {cur.options ? (
+                <>
                 <div className="mt-10 grid gap-3 sm:grid-cols-2">
                   {cur.options.map((o, i) => (
                     <button
@@ -214,6 +246,13 @@ function Index() {
                     </button>
                   ))}
                 </div>
+                <div className="mt-6 flex items-center gap-3">
+                  <button type="button" onClick={toggleVoiceInput} aria-label={voiceMode ? "Desligar modo de voz" : "Responder por voz"} title={voiceMode ? "Desligar modo de voz" : "Responder por voz"} className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 font-display text-sm transition ${voiceMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}>
+                    <span aria-hidden="true">🎙</span><span>{voiceMode ? "Desligar voz" : "Responder por voz"}</span>
+                  </button>
+                  <span className="font-light text-sm text-muted-foreground" aria-live="polite">{answers[cur.id] || "Escolha uma opção ou fale sua resposta."}</span>
+                </div>
+                </>
               ) : (
                 <div className="mt-10">
                   <div className="relative">
@@ -238,23 +277,23 @@ function Index() {
                     <button
                       type="button"
                       onClick={toggleVoiceInput}
-                      aria-label={isListening ? "Parar ditado por voz" : "Responder por voz"}
-                      title={isListening ? "Parar ditado por voz" : "Responder por voz"}
-                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 font-display text-sm transition ${isListening ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
+                      aria-label={voiceMode ? "Desligar modo de voz" : "Responder por voz"}
+                      title={voiceMode ? "Desligar modo de voz" : "Responder por voz"}
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 font-display text-sm transition ${voiceMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
                     >
-                      {isListening ? (
+                      {voiceMode ? (
                         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M7 7h10v10H7z" /></svg>
                       ) : (
                         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a1 1 0 1 0-2 0 3 3 0 0 1-6 0 1 1 0 1 0-2 0 5 5 0 0 0 4 4.9V19H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-3.1a5 5 0 0 0 4-4.9Z" /></svg>
                       )}
-                      <span>{isListening ? "Parar" : "Responder por voz"}</span>
+                      <span>{voiceMode ? "Desligar voz" : "Responder por voz"}</span>
                     </button>
                     <span className="hidden font-light text-sm text-muted-foreground sm:inline">
                       Enter ↵ {cur.long && "· Shift+Enter nova linha"}
                     </span>
                   </div>
                   <p className="mt-3 min-h-5 font-light text-xs text-muted-foreground" aria-live="polite">
-                    {voiceStatus || "A fala é transcrita para texto e usada como resposta. Revise antes de enviar."}
+                    {voiceStatus || (voiceMode ? "Modo de voz ligado: permanece ativo em todas as perguntas." : "A fala é transcrita para texto e usada como resposta. Revise antes de enviar.")}
                   </p>
                 </div>
               )}
