@@ -151,3 +151,12 @@
 @keyframes step-out { to{opacity:0; transform:translateY(-60px); filter:blur(8px)} }
 @utility step-in { animation: step-in .7s cubic-bezier(.22,1,.36,1) both; }
 @utility step-out { animation: step-out .45s cubic-bezier(.64,0,.78,0) both; }
+@keyframes bg-breathe {
+  from { transform: scale(1.06) translate3d(-1.4%, -1%, 0); }
+  to   { transform: scale(1.17) translate3d(1.4%, 1.2%, 0); }
+}
+@utility bg-breathe {
+  animation: bg-breathe 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
