@@ -363,38 +363,13 @@ function Index() {
         </div>
       </section>
 
-      <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/15 bg-black/90 px-4 py-3 text-white backdrop-blur-md sm:px-8 sm:py-4">
-        <div className="mx-auto flex max-w-6xl items-center justify-around gap-3 sm:gap-8">
-          <div className="flex min-w-0 flex-col items-center justify-center gap-1 sm:flex-row sm:gap-3">
-            <svg aria-hidden="true" viewBox="0 0 32 32" className="h-8 w-8 shrink-0 sm:h-10 sm:w-10" fill="currentColor">
-              <path d="M8.2 3.3a4.4 4.4 0 0 1 7.6 0l12.1 20.9a4.4 4.4 0 0 1-7.6 4.4L8.2 11.9a4.4 4.4 0 0 1 0-8.6Z"/>
-              <path d="M2.5 22.7 11.2 7.6l5.1 8.8-6.2 10.8a4.4 4.4 0 0 1-7.6-4.5Z"/>
-              <circle cx="5.4" cy="26.2" r="4.1"/>
-            </svg>
-            <span className="whitespace-nowrap text-xs font-medium sm:text-lg">Google Ads</span>
-          </div>
-
-          <div className="flex min-w-0 flex-col items-center justify-center gap-1 sm:flex-row sm:gap-3">
-            <svg aria-hidden="true" viewBox="0 0 40 28" className="h-8 w-10 shrink-0 sm:h-10 sm:w-14" fill="none" stroke="currentColor" strokeWidth="5.5" strokeLinecap="round">
-              <path d="M4 19C7 7 12 4 16 7c5 3 10 14 15 14 4 0 6-4 6-9 0-5-3-8-7-8-5 0-10 16-16 18C9 24 5 21 4 19Z"/>
-            </svg>
-            <span className="whitespace-nowrap text-xs font-medium sm:text-lg">Meta</span>
-          </div>
-
-          <div className="flex min-w-0 flex-col items-center justify-center gap-1 sm:flex-row sm:gap-3">
-            <span aria-hidden="true" className="font-sans text-4xl font-bold leading-none sm:text-5xl">G</span>
-            <span className="whitespace-nowrap text-xs font-medium sm:text-lg">Google Partner</span>
-          </div>
-
-          <div className="flex h-12 shrink-0 overflow-hidden rounded-md border-2 border-white sm:h-16">
-            <span className="flex items-center justify-center bg-white px-1.5 text-[9px] font-bold tracking-[0.12em] text-black [writing-mode:vertical-rl] rotate-180 sm:px-2 sm:text-xs">PREMIER</span>
-            <span className="flex flex-col justify-center px-2 font-medium leading-tight sm:px-4">
-              <span className="text-[10px] sm:text-base">Google</span>
-              <span className="text-base font-semibold sm:text-2xl">Partner</span>
-            </span>
-          </div>
-        </div>
-      </footer>
+      <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/15 bg-black/90 px-4 py-2 backdrop-blur-md">
+        <img
+          src="https://sexflow.com.br/sexflow/parceiros.png"
+          alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
+          className="mx-auto block max-h-[76px] w-auto max-w-full object-contain sm:max-h-[96px]"
+        />
+      </footer>ooter>
     </main>
   );
 }
