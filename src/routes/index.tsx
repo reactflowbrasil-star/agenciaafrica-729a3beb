@@ -174,7 +174,7 @@ function Index() {
             <div>
               <p className="mb-4 font-display text-sm font-light uppercase tracking-[0.3em] text-primary">Recebido</p>
               <h2 className="text-balance font-display text-5xl font-extralight leading-[1.02] tracking-[-0.03em] sm:text-7xl">
-                <Em text={`Obrigado${answers["nome"] ? `, **${answers["nome"].split(" ")[0].replace(/\*/g, "")}**` : ""}!`} />
+                <Em text={`Obrigado${answers["nome"] ? `, **${(answers["nome"].split(" ")[0] ?? "").replace(/\*/g, "")}**` : ""}!`} />
               </h2>
               <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
                 Nosso time vai analisar seu briefing e entrar em contato em breve.
