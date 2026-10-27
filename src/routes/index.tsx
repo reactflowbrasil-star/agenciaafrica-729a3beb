@@ -387,7 +387,7 @@ function Index() {
         <img
           src="/partners-transparent.png"
           alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
-          className="mx-auto block max-h-[76px] w-auto max-w-full object-contain sm:max-h-[96px]"
+          className="mx-auto block max-h-[44px] w-auto max-w-[70vw] object-contain sm:max-h-[60px] sm:max-w-[430px]"
         />
       </footer>
     </main>
