@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep decorative Africa map and geometric motion in a separate browser-safe SVG component below the briefing content; this isolates animation and keeps form input accessible.
