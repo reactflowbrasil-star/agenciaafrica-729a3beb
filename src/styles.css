@@ -205,27 +205,10 @@
 
 .africa-link:nth-child(odd) { stroke: var(--geometry-line-soft); }
 
-.geometry-trails {
-  stroke: var(--geometry-line-soft);
-  stroke-width: 1;
-}
-
-.geometry-trails path {
-  fill: none;
-  stroke-dasharray: .05 .2;
-  vector-effect: non-scaling-stroke;
-  opacity: 0;
-  animation:
-    geometry-flow 36s linear infinite,
-    geometry-fade 22s ease-in-out infinite;
-}
-
-.geometry-trails path:nth-child(1) { animation-delay: -6s, -3s; }
-.geometry-trails path:nth-child(2) { animation-delay: -18s, -12s; }
 
 @keyframes africa-trace {
-  0%, 4% { stroke-dashoffset: 1; }
-  46%, 100% { stroke-dashoffset: 0; }
+  0%, 2% { stroke-dashoffset: 1; }
+  20%, 100% { stroke-dashoffset: 0; }
 }
 
 @keyframes geometry-fade {
@@ -239,9 +222,8 @@
   to   { transform: translate3d(3%, -2%, 0) rotate(1.5deg) scale(1.1); }
 }
 
-@keyframes geometry-flow { to { stroke-dashoffset: -1; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .africa-mesh, .africa-link, .geometry-trails path { animation: none; opacity: 0; }
+  .africa-mesh, .africa-link { animation: none; opacity: 0; }
 }
 
