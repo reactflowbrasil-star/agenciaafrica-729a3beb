@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
+const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 
 type VoiceRecognitionEvent = {
   results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
@@ -65,6 +66,8 @@ function Index() {
   const stepRef = useRef(step);
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
+  const [musicPlaying, setMusicPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
@@ -103,6 +106,22 @@ function Index() {
       voiceRecognitionRef.current?.stop();
     };
   }, []);
+
+  const toggleBackgroundMusic = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (audio.paused) {
+      try {
+        await audio.play();
+        setMusicPlaying(true);
+      } catch {
+        setMusicPlaying(false);
+      }
+    } else {
+      audio.pause();
+      setMusicPlaying(false);
+    }
+  };
 
   const stopVoiceMode = () => {
     voiceModeRef.current = false;
@@ -200,6 +219,7 @@ function Index() {
   return (
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
+      <audio ref={audioRef} src={backgroundTrack} loop preload="none" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
 
@@ -209,11 +229,20 @@ function Index() {
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 sm:px-10">
         <img src={logo} alt="AFRICA" className="h-[90px] w-auto sm:h-[108px]" />
-        {step >= 0 && !done && (
-          <span className="font-display text-sm font-light tracking-[0.25em] text-muted-foreground">
-            {String(step + 1).padStart(2, "0")} / {QUESTIONS.length}
-          </span>
-        )}
+        <div className="flex items-center gap-4">
+          {step >= 0 && !done && (
+            <span className="font-display text-sm font-light tracking-[0.25em] text-muted-foreground">
+              {String(step + 1).padStart(2, "0")} / {QUESTIONS.length}
+            </span>
+          )}
+          <button type="button" onClick={toggleBackgroundMusic} aria-label={musicPlaying ? "Pausar trilha de fundo" : "Reproduzir trilha de fundo"} title={musicPlaying ? "Pausar trilha" : "Reproduzir trilha"} className="grid h-10 w-10 place-items-center rounded-full border border-border/70 bg-background/30 text-foreground backdrop-blur transition hover:border-primary hover:text-primary">
+            {musicPlaying ? (
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M7 5h4v14H7zm6 0h4v14h-4z" /></svg>
+            ) : (
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
+            )}
+          </button>
+        </div>
       </header>
 
       <section key={step} className={`relative z-10 flex min-h-dvh items-center px-6 py-28 sm:px-16 ${leaving ? "step-out" : "step-in"}`}>
