@@ -173,7 +173,7 @@ function Index() {
             <div>
               <p className="mb-4 font-display text-sm uppercase tracking-[0.3em] text-primary">Recebido</p>
               <h2 className="font-display text-4xl font-extrabold leading-tight sm:text-6xl">
-                Obrigado{answers.nome ? `, ${answers.nome.split(" ")[0]}` : ""}!
+                Obrigado{answers["nome"] ? `, ${answers["nome"].split(" ")[0]}` : ""}!
               </h2>
               <p className="mt-6 max-w-xl text-lg text-muted-foreground">
                 Nosso time vai analisar seu briefing e entrar em contato em breve.
