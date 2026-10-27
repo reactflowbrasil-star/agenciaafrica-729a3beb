@@ -62,3 +62,5 @@ export function AfricaGeometry() {
     </div>
   );
 }
+
+export default AfricaGeometry;
