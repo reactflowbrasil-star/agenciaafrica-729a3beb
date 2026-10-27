@@ -102,7 +102,7 @@ function Index() {
             <div>
               <p className="mb-4 font-display text-sm font-light uppercase tracking-[0.3em] text-primary">Briefing</p>
               <h1 className="text-balance font-display text-4xl font-extralight leading-[1.06] tracking-[-0.03em] sm:text-7xl">
-                <Em text="Vamos construir sua **próxima campanha** juntos." />
+                <Em text="Vamos construir sua **próxima campanha**." />
               </h1>
               <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
                 {QUESTIONS.length} perguntas rápidas. Leva cerca de 3 minutos.
