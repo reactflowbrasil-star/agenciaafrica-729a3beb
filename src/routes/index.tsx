@@ -20,19 +20,19 @@ export const Route = createFileRoute("/")({
 type Q = { id: string; q: string; hint?: string; options?: string[]; long?: boolean; type?: string };
 
 const QUESTIONS: Q[] = [
-  { id: "nome", q: "Qual é o seu nome?", hint: "Vamos começar pelo básico." },
-  { id: "empresa", q: "Qual o nome da sua empresa ou marca?" },
-  { id: "contato", q: "Qual seu WhatsApp ou e-mail?", type: "text" },
-  { id: "segmento", q: "Em qual segmento você atua?", hint: "Ex.: moda, saúde, educação, imobiliário..." },
-  { id: "oferta", q: "O que você vende? Descreva seu produto ou serviço principal.", long: true },
-  { id: "publico", q: "Quem é o seu cliente ideal?", hint: "Idade, região, interesses, dores.", long: true },
-  { id: "objetivo", q: "Qual o principal objetivo da campanha?", options: ["Gerar leads", "Vender online", "Reconhecimento de marca", "Mais seguidores", "Atendimento no WhatsApp"] },
-  { id: "canais", q: "Em quais canais quer anunciar?", options: ["Meta (Instagram/Facebook)", "Google Ads", "TikTok Ads", "YouTube", "LinkedIn", "Ainda não sei"] },
-  { id: "historico", q: "Você já investiu em tráfego pago antes?", options: ["Sim, com agência", "Sim, por conta própria", "Nunca investi"] },
-  { id: "verba", q: "Qual a verba mensal prevista para anúncios?", options: ["Até R$ 1.000", "R$ 1.000 a R$ 3.000", "R$ 3.000 a R$ 10.000", "Acima de R$ 10.000"] },
-  { id: "concorrentes", q: "Quem são seus principais concorrentes?", long: true },
-  { id: "diferencial", q: "O que faz sua marca ser única?", long: true },
-  { id: "extra", q: "Algo mais que devemos saber?", hint: "Prazos, materiais, expectativas.", long: true },
+  { id: "nome", q: "Qual é o seu **nome**?", hint: "Vamos começar pelo básico." },
+  { id: "empresa", q: "Qual o nome da sua **empresa** ou marca?" },
+  { id: "contato", q: "Qual seu **WhatsApp** ou e-mail?", type: "text" },
+  { id: "segmento", q: "Em qual **segmento** você atua?", hint: "Ex.: moda, saúde, educação, imobiliário..." },
+  { id: "oferta", q: "O que você **vende**? Descreva seu produto ou serviço principal.", long: true },
+  { id: "publico", q: "Quem é o seu **cliente ideal**?", hint: "Idade, região, interesses, dores.", long: true },
+  { id: "objetivo", q: "Qual o principal **objetivo** da campanha?", options: ["Gerar leads", "Vender online", "Reconhecimento de marca", "Mais seguidores", "Atendimento no WhatsApp"] },
+  { id: "canais", q: "Em quais **canais** quer anunciar?", options: ["Meta (Instagram/Facebook)", "Google Ads", "TikTok Ads", "YouTube", "LinkedIn", "Ainda não sei"] },
+  { id: "historico", q: "Você já investiu em **tráfego pago** antes?", options: ["Sim, com agência", "Sim, por conta própria", "Nunca investi"] },
+  { id: "verba", q: "Qual a **verba mensal** prevista para anúncios?", options: ["Até R$ 1.000", "R$ 1.000 a R$ 3.000", "R$ 3.000 a R$ 10.000", "Acima de R$ 10.000"] },
+  { id: "concorrentes", q: "Quem são seus principais **concorrentes**?", long: true },
+  { id: "diferencial", q: "O que faz sua marca ser **única**?", long: true },
+  { id: "extra", q: "Algo mais que **devemos saber**?", hint: "Prazos, materiais, expectativas.", long: true },
 ];
 
 function Index() {
@@ -101,8 +101,8 @@ function Index() {
           {step === -1 && (
             <div>
               <p className="mb-4 font-display text-sm font-light uppercase tracking-[0.3em] text-primary">Briefing</p>
-              <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-                Vamos construir sua próxima campanha juntos.
+              <h1 className="text-balance font-display text-4xl font-extralight leading-[1.06] tracking-[-0.03em] sm:text-7xl">
+                <Em text="Vamos construir sua **próxima campanha**." />
               </h1>
               <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
                 {QUESTIONS.length} perguntas rápidas. Leva cerca de 3 minutos.
@@ -117,7 +117,7 @@ function Index() {
           {cur && (
             <div>
               <p className="mb-3 font-display text-sm font-light text-primary">{step + 1} →</p>
-              <h2 className="font-display text-3xl font-bold leading-[1.08] tracking-tight sm:text-5xl">{cur.q}</h2>
+              <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-7xl"><Em text={cur.q} /></h2>
               {cur.hint && <p className="mt-3 font-light text-lg text-muted-foreground">{cur.hint}</p>}
 
               {cur.options ? (
@@ -173,8 +173,8 @@ function Index() {
           {done && (
             <div>
               <p className="mb-4 font-display text-sm font-light uppercase tracking-[0.3em] text-primary">Recebido</p>
-              <h2 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-                Obrigado{answers["nome"] ? `, ${answers["nome"].split(" ")[0]}` : ""}!
+              <h2 className="text-balance font-display text-5xl font-extralight leading-[1.02] tracking-[-0.03em] sm:text-7xl">
+                <Em text={`Obrigado${answers["nome"] ? `, **${(answers["nome"].split(" ")[0] ?? "").replace(/\*/g, "")}**` : ""}!`} />
               </h2>
               <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
                 Nosso time vai analisar seu briefing e entrar em contato em breve.
@@ -184,6 +184,21 @@ function Index() {
         </div>
       </section>
     </main>
+  );
+}
+
+/* Renders **bold** segments of a string in bold; the rest keeps the thin title weight. */
+function Em({ text }: { text: string }) {
+  return (
+    <>
+      {text.split("**").map((part, i) =>
+        i % 2 === 1 ? (
+          <b key={i} className="font-bold whitespace-nowrap">{part}</b>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
   );
 }
 
