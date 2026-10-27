@@ -160,82 +160,88 @@
   will-change: transform;
 }
 
-/* A translucent cartographic layer, underneath all briefing content. */
+/* Linhas que se conectam pela tela inteira, surgindo e sumindo gradualmente. */
 :root, .dark {
-  --geometry-line: oklch(0.98 0.01 85 / 18%);
-  --geometry-highlight: oklch(0.78 0.15 70 / 38%);
-  --geometry-mesh: oklch(0.98 0.01 85 / 12%);
-  --geometry-trail: oklch(0.98 0.01 85 / 9%);
-  --geometry-cycle: 30s;
+  --geometry-line: oklch(0.98 0.01 85 / 22%);
+  --geometry-line-soft: oklch(0.98 0.01 85 / 13%);
+  --geometry-highlight: oklch(0.78 0.15 70 / 34%);
+  --geometry-glow: oklch(0.78 0.15 70 / 28%);
+  --geometry-cycle: 34s;
 }
-.africa-map {
+
+.africa-geometry {
   position: absolute;
-  width: min(72vw, 780px);
-  height: auto;
-  right: -3%;
-  top: 50%;
-  transform: translateY(-50%);
-  animation: africa-drift 32s ease-in-out infinite alternate;
-  stroke-width: 1;
-  stroke-linejoin: round;
-  stroke-linecap: round;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
 }
-/* Each line dissolves and reappears on its own slow rhythm. */
-.africa-outline-base {
+
+.africa-geometry svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.africa-mesh {
+  animation: africa-drift 96s ease-in-out infinite alternate;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 6px var(--geometry-glow));
+}
+
+.africa-link {
+  fill: none;
   stroke: var(--geometry-line);
-  animation: geometry-fade 27s ease-in-out infinite;
-}
-.africa-outline-draw {
-  stroke: var(--geometry-highlight);
+  stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-dasharray: 1;
-  animation:
-    africa-trace var(--geometry-cycle) ease-in-out infinite,
-    geometry-fade var(--geometry-cycle) ease-in-out infinite;
-  animation-delay: -4s, -4s;
-}
-.africa-mesh-line {
-  stroke: var(--geometry-mesh);
-  stroke-dasharray: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
   animation:
     africa-trace var(--geometry-cycle) ease-in-out infinite,
     geometry-fade var(--geometry-cycle) ease-in-out infinite;
 }
-.africa-mesh-line:nth-child(1) { animation-delay: -1s, -1s; }
-.africa-mesh-line:nth-child(2) { animation-delay: -6s, -6s; }
-.africa-mesh-line:nth-child(3) { animation-delay: -11s, -11s; }
-.africa-mesh-line:nth-child(4) { animation-delay: -16s, -16s; }
-.africa-mesh-line:nth-child(5) { animation-delay: -21s, -21s; }
-.africa-mesh-line:nth-child(6) { animation-delay: -26s, -26s; }
-.africa-nodes { fill: var(--geometry-highlight); animation: geometry-breathe 12s ease-in-out infinite; }
-.geometry-trails { position: absolute; inset: 0; width: 100%; height: 100%; stroke: var(--geometry-trail); stroke-width: 1; }
+
+.africa-link:nth-child(odd) { stroke: var(--geometry-line-soft); }
+
+.geometry-trails {
+  stroke: var(--geometry-line-soft);
+  stroke-width: 1;
+}
+
 .geometry-trails path {
-  stroke-dasharray: .12 .88;
+  fill: none;
+  stroke-dasharray: .05 .2;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
   animation:
     geometry-flow 36s linear infinite,
     geometry-fade 22s ease-in-out infinite;
 }
+
 .geometry-trails path:nth-child(1) { animation-delay: -6s, -3s; }
-.geometry-trails path:nth-child(2) { animation-delay: -24s, -14s; animation-direction: reverse, normal; }
+.geometry-trails path:nth-child(2) { animation-delay: -18s, -12s; }
+
 @keyframes africa-trace {
   0%, 4% { stroke-dashoffset: 1; }
   46%, 100% { stroke-dashoffset: 0; }
 }
+
 @keyframes geometry-fade {
   0%, 5% { opacity: 0; }
   36%, 58% { opacity: 1; }
   90%, 100% { opacity: 0; }
 }
+
 @keyframes africa-drift {
-  from { transform: translate(0, -51%) rotate(-2deg); }
-  to { transform: translate(-2%, -48%) rotate(2deg); }
+  from { transform: translate3d(-3%, 1%, 0) rotate(-1.5deg) scale(1.05); }
+  to   { transform: translate3d(3%, -2%, 0) rotate(1.5deg) scale(1.1); }
 }
+
 @keyframes geometry-flow { to { stroke-dashoffset: -1; } }
-@keyframes geometry-breathe { 0%, 100% { opacity: .25; } 50% { opacity: .95; } }
-@media (max-width: 640px) {
-  .africa-map { width: 115vw; right: -28%; top: 48%; }
-}
+
 @media (prefers-reduced-motion: reduce) {
-  .africa-map, .africa-outline-base, .africa-outline-draw, .africa-mesh-line, .africa-nodes, .geometry-trails path { animation: none; }
-  .africa-outline-draw, .africa-mesh-line { stroke-dashoffset: 0; opacity: .6; }
+  .africa-mesh, .africa-link, .geometry-trails path { animation: none; opacity: 0; }
 }
 
