@@ -369,7 +369,7 @@ function Index() {
           alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
           className="mx-auto block max-h-[76px] w-auto max-w-full object-contain sm:max-h-[96px]"
         />
-      </footer>ooter>
+      </footer>
     </main>
   );
 }
