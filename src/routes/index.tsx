@@ -101,7 +101,7 @@ function Index() {
           {step === -1 && (
             <div>
               <p className="mb-4 font-display text-sm font-light uppercase tracking-[0.3em] text-primary">Briefing</p>
-              <h1 className="text-balance font-display text-5xl font-extralight leading-[1.02] tracking-[-0.03em] sm:text-7xl">
+              <h1 className="text-balance font-display text-4xl font-extralight leading-[1.06] tracking-[-0.03em] sm:text-7xl">
                 <Em text="Vamos construir sua **próxima campanha** juntos." />
               </h1>
               <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
@@ -117,7 +117,7 @@ function Index() {
           {cur && (
             <div>
               <p className="mb-3 font-display text-sm font-light text-primary">{step + 1} →</p>
-              <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-6xl"><Em text={cur.q} /></h2>
+              <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-7xl"><Em text={cur.q} /></h2>
               {cur.hint && <p className="mt-3 font-light text-lg text-muted-foreground">{cur.hint}</p>}
 
               {cur.options ? (
@@ -193,7 +193,7 @@ function Em({ text }: { text: string }) {
     <>
       {text.split("**").map((part, i) =>
         i % 2 === 1 ? (
-          <b key={i} className="font-bold">{part}</b>
+          <b key={i} className="font-bold whitespace-nowrap">{part}</b>
         ) : (
           <span key={i}>{part}</span>
         ),
