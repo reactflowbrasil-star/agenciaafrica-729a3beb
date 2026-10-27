@@ -3,6 +3,25 @@ import { useEffect, useRef, useState } from "react";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 
+type VoiceRecognitionEvent = {
+  results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
+};
+type VoiceRecognition = {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: ((event: VoiceRecognitionEvent) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+};
+type VoiceRecognitionConstructor = new () => VoiceRecognition;
+type WindowWithVoiceRecognition = Window & {
+  SpeechRecognition?: VoiceRecognitionConstructor;
+  webkitSpeechRecognition?: VoiceRecognitionConstructor;
+};
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -40,7 +59,11 @@ function Index() {
   const [leaving, setLeaving] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [voiceStatus, setVoiceStatus] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
+  const voiceBaseValueRef = useRef("");
   const done = step >= QUESTIONS.length;
   const cur = QUESTIONS[step];
 
@@ -55,6 +78,7 @@ function Index() {
 
   const submit = (v = value) => {
     if (!cur || !v.trim()) return;
+    voiceRecognitionRef.current?.stop();
     setAnswers((a) => ({ ...a, [cur.id]: v.trim() }));
     go(step + 1);
   };
@@ -62,6 +86,62 @@ function Index() {
   useEffect(() => {
     if (!leaving) setTimeout(() => inputRef.current?.focus(), 350);
   }, [step, leaving]);
+
+  useEffect(() => {
+    return () => voiceRecognitionRef.current?.stop();
+  }, []);
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      voiceRecognitionRef.current?.stop();
+      setVoiceStatus("Finalizando transcrição…");
+      return;
+    }
+
+    const browserWindow = window as WindowWithVoiceRecognition;
+    const Recognition = browserWindow.SpeechRecognition ?? browserWindow.webkitSpeechRecognition;
+    if (!Recognition) {
+      setVoiceStatus("Este navegador não oferece ditado ao vivo. Digite sua resposta ou use o Chrome.");
+      return;
+    }
+
+    try {
+      const recognition = new Recognition();
+      recognition.lang = "pt-BR";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      voiceBaseValueRef.current = value.trim();
+      recognition.onresult = (event) => {
+        const finalSegments: string[] = [];
+        const interimSegments: string[] = [];
+        for (let i = 0; i < event.results.length; i++) {
+          const result = event.results[i];
+          const transcript = result?.[0]?.transcript?.trim();
+          if (!transcript) continue;
+          (result.isFinal ? finalSegments : interimSegments).push(transcript);
+        }
+        const spokenText = [...finalSegments, ...interimSegments].join(" ").trim();
+        setValue([voiceBaseValueRef.current, spokenText].filter(Boolean).join(" "));
+      };
+      recognition.onerror = () => {
+        setIsListening(false);
+        setVoiceStatus("Não foi possível reconhecer a fala. Tente novamente ou digite sua resposta.");
+      };
+      recognition.onend = () => {
+        voiceRecognitionRef.current = null;
+        setIsListening(false);
+        setVoiceStatus("");
+      };
+      voiceRecognitionRef.current = recognition;
+      recognition.start();
+      setIsListening(true);
+      setVoiceStatus("Ouvindo…");
+    } catch {
+      voiceRecognitionRef.current = null;
+      setIsListening(false);
+      setVoiceStatus("Não foi possível iniciar o microfone. Confira a permissão do navegador.");
+    }
+  };
 
   useEffect(() => {
     const el = inputRef.current;
@@ -151,14 +231,31 @@ function Index() {
                     />
                     <FakeCaret value={value} />
                   </div>
-                  <div className="mt-6 flex items-center gap-4">
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
                     <button onClick={() => submit()} disabled={!value.trim()} className="rounded-full bg-primary px-6 py-3 font-display font-bold text-primary-foreground transition hover:scale-105 disabled:opacity-30 disabled:hover:scale-100">
                       OK ✓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={toggleVoiceInput}
+                      aria-label={isListening ? "Parar ditado por voz" : "Responder por voz"}
+                      title={isListening ? "Parar ditado por voz" : "Responder por voz"}
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 font-display text-sm transition ${isListening ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
+                    >
+                      {isListening ? (
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M7 7h10v10H7z" /></svg>
+                      ) : (
+                        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a1 1 0 1 0-2 0 3 3 0 0 1-6 0 1 1 0 1 0-2 0 5 5 0 0 0 4 4.9V19H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-3.1a5 5 0 0 0 4-4.9Z" /></svg>
+                      )}
+                      <span>{isListening ? "Parar" : "Responder por voz"}</span>
                     </button>
                     <span className="hidden font-light text-sm text-muted-foreground sm:inline">
                       Enter ↵ {cur.long && "· Shift+Enter nova linha"}
                     </span>
                   </div>
+                  <p className="mt-3 min-h-5 font-light text-xs text-muted-foreground" aria-live="polite">
+                    {voiceStatus || "A fala é transcrita para texto e usada como resposta. Revise antes de enviar."}
+                  </p>
                 </div>
               )}
 
