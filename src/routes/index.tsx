@@ -80,7 +80,8 @@ function Index() {
   return (
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
       <video src={bg.url} autoPlay muted loop playsInline className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/20 to-background/40" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
 
       <div className="absolute inset-x-0 top-0 z-20 h-1 bg-foreground/10">
         <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: `${progress}%` }} />
