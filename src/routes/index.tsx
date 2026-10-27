@@ -77,11 +77,11 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    const fadeTimer = window.setTimeout(() => setIntroFading(true), 3300);
+    const fadeTimer = window.setTimeout(() => setIntroFading(true), 9000);
     const finishTimer = window.setTimeout(() => {
       setShowIntro(false);
       setStep(0);
-    }, 4000);
+    }, 10000);
     return () => {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
@@ -243,8 +243,8 @@ function Index() {
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
       {showIntro && (
-        <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-700 ${introFading ? "opacity-0" : "opacity-100"}`}>
-          <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 1200ms ease-out both" }} />
+        <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ${introFading ? "opacity-0" : "opacity-100"}`}>
+          <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 2600ms ease-out both" }} />
         </div>
       )}
 
@@ -387,7 +387,7 @@ function Index() {
         <img
           src="/partners-transparent.png"
           alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
-          className="mx-auto block max-h-[44px] w-auto max-w-[70vw] object-contain sm:max-h-[60px] sm:max-w-[430px]"
+          className="mx-auto block max-h-[28px] w-auto max-w-[64vw] object-contain sm:max-h-[36px] sm:max-w-[400px]"
         />
       </footer>
     </main>
