@@ -363,7 +363,7 @@ function Index() {
         </div>
       </section>
 
-      <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/15 bg-black/90 px-4 py-2 backdrop-blur-md">
+      <footer className="fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2">
         <img
           src="/partners-transparent.png"
           alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
