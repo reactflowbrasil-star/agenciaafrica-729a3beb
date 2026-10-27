@@ -19,7 +19,7 @@ export function AfricaGeometry() {
         <path className="africa-outline-base" d={outline} />
         <path className="africa-outline-draw" d={outline} pathLength="1" />
         <g className="africa-mesh" clipPath="url(#africa-map-clip)">
-          {mesh.map((d, i) => <path key={d} d={d} pathLength="1" className={`africa-mesh-line africa-mesh-line-${i % 3}`} />)}
+          {mesh.map((d) => <path key={d} d={d} pathLength="1" className="africa-mesh-line" />)}
         </g>
         <path className="africa-outline-base" d="M416 331 L426 319 L429 338 L421 365 L410 381 L407 367 Z" />
         <g className="africa-nodes">
