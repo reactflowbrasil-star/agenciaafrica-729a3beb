@@ -365,7 +365,7 @@ function Index() {
 
       <footer className="fixed inset-x-0 bottom-0 z-30 border-t border-white/15 bg-black/90 px-4 py-2 backdrop-blur-md">
         <img
-          src="https://sexflow.com.br/sexflow/parceiros.png"
+          src="/partners-transparent.png"
           alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
           className="mx-auto block max-h-[76px] w-auto max-w-full object-contain sm:max-h-[96px]"
         />
