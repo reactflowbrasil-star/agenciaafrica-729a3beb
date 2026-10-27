@@ -63,6 +63,7 @@ function Index() {
   const [voiceMode, setVoiceMode] = useState(false);
   const voiceModeRef = useRef(false);
   const stepRef = useRef(step);
+  const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
@@ -72,11 +73,19 @@ function Index() {
   const cur = QUESTIONS[step];
 
   const go = (next: number) => {
+    changingStepRef.current = true;
+    voiceRecognitionRef.current?.stop();
     setLeaving(true);
     setTimeout(() => {
       setStep(next);
       setValue(QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "");
       voiceBaseValueRef.current = QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "";
+      changingStepRef.current = false;
+      if (voiceModeRef.current && next < QUESTIONS.length) {
+        window.setTimeout(() => {
+          if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+        }, 200);
+      }
       setLeaving(false);
     }, 450);
   };
@@ -144,7 +153,7 @@ function Index() {
       recognition.onend = () => {
         voiceRecognitionRef.current = null;
         setIsListening(false);
-        if (voiceModeRef.current && stepRef.current < QUESTIONS.length) {
+        if (voiceModeRef.current && !changingStepRef.current && stepRef.current < QUESTIONS.length) {
           window.setTimeout(() => {
             if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
           }, 250);
