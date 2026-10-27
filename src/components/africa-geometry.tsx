@@ -24,11 +24,14 @@ const STEP = 2.8;
 
 function chainPath(chain: number[]) {
   return chain
-    .map((index, k) => `${k === 0 ? "M" : "L"} ${POINTS[index][0]} ${POINTS[index][1]}`)
+    .map((index, k) => {
+      const pt = POINTS[index] ?? ([0, 0] as [number, number]);
+      return `${k === 0 ? "M" : "L"} ${pt[0]} ${pt[1]}`;
+    })
     .join(" ");
 }
 
-export default function AfricaGeometry() {
+export function AfricaGeometry() {
   return (
     <div
       className="africa-geometry pointer-events-none absolute inset-0 overflow-hidden"
