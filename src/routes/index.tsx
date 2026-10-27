@@ -3,50 +3,6 @@ import { useEffect, useRef, useState } from "react";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 
-type YouTubePlayer = { playVideo(): void; pauseVideo(): void; destroy(): void };
-type YouTubeEvent = { target: YouTubePlayer; data?: number };
-type YouTubeApi = {
-  Player: new (
-    target: HTMLElement,
-    options: {
-      width: number;
-      height: number;
-      videoId: string;
-      playerVars: Record<string, string | number>;
-      events: {
-        onReady: (event: YouTubeEvent) => void;
-        onStateChange: (event: YouTubeEvent) => void;
-        onError: () => void;
-      };
-    },
-  ) => YouTubePlayer;
-};
-type WindowWithYouTube = Window & { YT?: YouTubeApi; onYouTubeIframeAPIReady?: () => void };
-
-function loadYouTubeApi(): Promise<YouTubeApi> {
-  return new Promise((resolve, reject) => {
-    const browserWindow = window as WindowWithYouTube;
-    if (browserWindow.YT) {
-      resolve(browserWindow.YT);
-      return;
-    }
-    const existingScript = document.querySelector<HTMLScriptElement>('script[src="https://www.youtube.com/iframe_api"]');
-    const previousReady = browserWindow.onYouTubeIframeAPIReady;
-    browserWindow.onYouTubeIframeAPIReady = () => {
-      previousReady?.();
-      if (browserWindow.YT) resolve(browserWindow.YT);
-      else reject(new Error("YouTube Player API indisponível."));
-    };
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      script.async = true;
-      script.onerror = () => reject(new Error("Não foi possível carregar o player do YouTube."));
-      document.head.appendChild(script);
-    }
-  });
-}
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -85,12 +41,6 @@ function Index() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const youtubeMountRef = useRef<HTMLDivElement>(null);
-  const youtubePlayerRef = useRef<YouTubePlayer | null>(null);
-  const [musicPlaying, setMusicPlaying] = useState(false);
-  const [musicLoading, setMusicLoading] = useState(false);
-  const [musicPlayerVisible, setMusicPlayerVisible] = useState(false);
-  const [musicError, setMusicError] = useState(false);
   const done = step >= QUESTIONS.length;
   const cur = QUESTIONS[step];
 
@@ -127,54 +77,6 @@ function Index() {
 
   const progress = done ? 100 : Math.max(0, (step / QUESTIONS.length) * 100);
 
-  useEffect(() => () => youtubePlayerRef.current?.destroy(), []);
-
-  const toggleMusic = async () => {
-    if (musicLoading) return;
-    if (youtubePlayerRef.current) {
-      if (musicPlaying) youtubePlayerRef.current.pauseVideo();
-      else youtubePlayerRef.current.playVideo();
-      return;
-    }
-    setMusicError(false);
-    setMusicLoading(true);
-    setMusicPlayerVisible(true);
-    try {
-      const api = await loadYouTubeApi();
-      if (!youtubeMountRef.current || youtubePlayerRef.current) return;
-      youtubePlayerRef.current = new api.Player(youtubeMountRef.current, {
-        width: 200,
-        height: 200,
-        videoId: "vWeU-lKBvBg",
-        playerVars: {
-          autoplay: 1,
-          controls: 0,
-          playsinline: 1,
-          rel: 0,
-          origin: window.location.origin,
-        },
-        events: {
-          onReady: (event) => {
-            setMusicLoading(false);
-            event.target.playVideo();
-          },
-          onStateChange: (event) => {
-            setMusicPlaying(event.data === 1);
-            if (event.data !== -1 && event.data !== 3) setMusicLoading(false);
-          },
-          onError: () => {
-            setMusicLoading(false);
-            setMusicError(true);
-            setMusicPlaying(false);
-          },
-        },
-      });
-    } catch {
-      setMusicLoading(false);
-      setMusicError(true);
-    }
-  };
-
   return (
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
@@ -187,26 +89,11 @@ function Index() {
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 sm:px-10">
         <img src={logo} alt="AFRICA" className="h-[90px] w-auto sm:h-[108px]" />
-        <div className="flex items-center gap-4">
-          {step >= 0 && !done && (
-            <span className="font-display text-sm font-light tracking-[0.25em] text-muted-foreground">
-              {String(step + 1).padStart(2, "0")} / {QUESTIONS.length}
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={toggleMusic}
-            aria-label={musicPlaying ? "Pausar música" : "Reproduzir música"}
-            title={musicError ? "Não foi possível carregar o áudio" : musicPlaying ? "Pausar música" : "Reproduzir música"}
-            className="grid h-10 w-10 place-items-center rounded-full border border-foreground/20 bg-background/30 text-foreground backdrop-blur transition hover:border-primary hover:text-primary"
-          >
-            {musicPlaying ? (
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M7 5h4v14H7zm6 0h4v14h-4z" /></svg>
-            ) : (
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
-            )}
-          </button>
-        </div>
+        {step >= 0 && !done && (
+          <span className="font-display text-sm font-light tracking-[0.25em] text-muted-foreground">
+            {String(step + 1).padStart(2, "0")} / {QUESTIONS.length}
+          </span>
+        )}
       </header>
 
       <section key={step} className={`relative z-10 flex min-h-dvh items-center px-6 py-28 sm:px-16 ${leaving ? "step-out" : "step-in"}`}>
@@ -296,21 +183,6 @@ function Index() {
           )}
         </div>
       </section>
-      {musicPlayerVisible && (
-        <aside
-          aria-label="Player de Storms in Africa"
-          className="fixed bottom-4 right-4 z-30 rounded-xl border border-foreground/15 bg-black/85 p-3 text-white shadow-2xl backdrop-blur"
-        >
-          <div className="mb-2 flex w-[200px] items-center justify-between gap-2">
-            <span className="truncate text-xs font-light">Storms in Africa · Enya</span>
-            <span className="text-[10px] text-white/60">YouTube</span>
-          </div>
-          <div ref={youtubeMountRef} className="h-[200px] w-[200px] overflow-hidden rounded-md bg-black" />
-          <p className="mt-2 w-[200px] text-[10px] text-white/65" aria-live="polite">
-            {musicLoading ? "Carregando áudio…" : musicError ? "Este vídeo não pôde ser incorporado." : "Use o botão no topo para pausar ou continuar."}
-          </p>
-        </aside>
-      )}
     </main>
   );
 }
