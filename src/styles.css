@@ -162,8 +162,8 @@
 
 /* Linhas que se conectam pela tela inteira, surgindo e sumindo gradualmente. */
 :root, .dark {
-  --geometry-line: oklch(0.98 0.01 85 / 22%);
-  --geometry-line-soft: oklch(0.98 0.01 85 / 13%);
+  --geometry-line: oklch(0.98 0.01 85 / 30%);
+  --geometry-line-soft: oklch(0.98 0.01 85 / 17%);
   --geometry-highlight: oklch(0.78 0.15 70 / 34%);
   --geometry-glow: oklch(0.78 0.15 70 / 28%);
   --geometry-cycle: 34s;
@@ -229,9 +229,9 @@
 }
 
 @keyframes geometry-fade {
-  0%, 5% { opacity: 0; }
-  36%, 58% { opacity: 1; }
-  90%, 100% { opacity: 0; }
+  0%, 4% { opacity: 0; }
+  26%, 72% { opacity: 1; }
+  96%, 100% { opacity: 0; }
 }
 
 @keyframes africa-drift {
