@@ -79,17 +79,18 @@ function Index() {
 
   return (
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
-      <video src={bg.url} autoPlay muted loop playsInline className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-50" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/30 to-background/60" />
+      <video src={bg.url} autoPlay muted loop playsInline className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
 
       <div className="absolute inset-x-0 top-0 z-20 h-1 bg-foreground/10">
         <div className="h-full bg-primary transition-all duration-700 ease-out" style={{ width: `${progress}%` }} />
       </div>
 
       <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 sm:px-10">
-        <img src={logo.url} alt="AFRICA" className="h-10 w-auto sm:h-12" />
+        <img src={logo.url} alt="AFRICA" className="h-15 w-auto sm:h-18" />
         {step >= 0 && !done && (
-          <span className="font-display text-sm tracking-widest text-muted-foreground">
+          <span className="font-display text-sm font-light tracking-[0.25em] text-muted-foreground">
             {String(step + 1).padStart(2, "0")} / {QUESTIONS.length}
           </span>
         )}
@@ -99,25 +100,25 @@ function Index() {
         <div className="mx-auto w-full max-w-3xl">
           {step === -1 && (
             <div>
-              <p className="mb-4 font-display text-sm uppercase tracking-[0.3em] text-primary">Briefing</p>
-              <h1 className="font-display text-4xl font-extrabold leading-tight sm:text-6xl">
+              <p className="mb-4 font-display text-sm font-light uppercase tracking-[0.3em] text-primary">Briefing</p>
+              <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
                 Vamos construir sua próxima campanha juntos.
               </h1>
-              <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+              <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
                 {QUESTIONS.length} perguntas rápidas. Leva cerca de 3 minutos.
               </p>
-              <button onClick={() => go(0)} className="mt-10 rounded-full bg-primary px-8 py-4 font-display font-semibold text-primary-foreground transition hover:scale-105">
+              <button onClick={() => go(0)} className="mt-10 rounded-full bg-primary px-8 py-4 font-display font-bold text-primary-foreground transition hover:scale-105">
                 Começar →
               </button>
-              <p className="mt-4 hidden text-sm text-muted-foreground sm:block">ou pressione <b>Enter ↵</b></p>
+              <p className="mt-4 hidden font-light text-sm text-muted-foreground sm:block">ou pressione <b className="font-bold">Enter ↵</b></p>
             </div>
           )}
 
           {cur && (
             <div>
-              <p className="mb-3 font-display text-sm text-primary">{step + 1} →</p>
-              <h2 className="font-display text-3xl font-extrabold leading-tight sm:text-5xl">{cur.q}</h2>
-              {cur.hint && <p className="mt-3 text-lg text-muted-foreground">{cur.hint}</p>}
+              <p className="mb-3 font-display text-sm font-light text-primary">{step + 1} →</p>
+              <h2 className="font-display text-3xl font-bold leading-[1.08] tracking-tight sm:text-5xl">{cur.q}</h2>
+              {cur.hint && <p className="mt-3 font-light text-lg text-muted-foreground">{cur.hint}</p>}
 
               {cur.options ? (
                 <div className="mt-10 grid gap-3 sm:grid-cols-2">
@@ -128,8 +129,8 @@ function Index() {
                       className={`step-in flex items-center gap-4 rounded-xl border border-border bg-background/40 px-5 py-4 text-left backdrop-blur transition hover:border-primary hover:bg-primary/10 ${answers[cur.id] === o ? "border-primary" : ""}`}
                       style={{ animationDelay: `${150 + i * 60}ms` }}
                     >
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-primary/60 font-display text-xs text-primary">{String.fromCharCode(65 + i)}</span>
-                      <span className="min-w-0">{o}</span>
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-primary/60 font-display text-xs font-bold text-primary">{String.fromCharCode(65 + i)}</span>
+                      <span className="min-w-0 font-light">{o}</span>
                     </button>
                   ))}
                 </div>
@@ -145,16 +146,16 @@ function Index() {
                         if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
                       }}
                       placeholder="Digite sua resposta..."
-                      className="w-full resize-none overflow-hidden border-b-2 border-border bg-transparent pb-3 text-2xl caret-primary outline-none transition-colors placeholder:text-foreground/25 focus:border-primary sm:text-3xl"
+                      className="w-full resize-none overflow-hidden border-b-2 border-border bg-transparent pb-3 font-light text-2xl caret-primary outline-none transition-colors placeholder:text-foreground/25 focus:border-primary sm:text-3xl"
                       style={{ caretColor: "transparent" }}
                     />
                     <FakeCaret value={value} />
                   </div>
                   <div className="mt-6 flex items-center gap-4">
-                    <button onClick={() => submit()} disabled={!value.trim()} className="rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground transition hover:scale-105 disabled:opacity-30 disabled:hover:scale-100">
+                    <button onClick={() => submit()} disabled={!value.trim()} className="rounded-full bg-primary px-6 py-3 font-display font-bold text-primary-foreground transition hover:scale-105 disabled:opacity-30 disabled:hover:scale-100">
                       OK ✓
                     </button>
-                    <span className="hidden text-sm text-muted-foreground sm:inline">
+                    <span className="hidden font-light text-sm text-muted-foreground sm:inline">
                       Enter ↵ {cur.long && "· Shift+Enter nova linha"}
                     </span>
                   </div>
@@ -162,7 +163,7 @@ function Index() {
               )}
 
               {step > 0 && (
-                <button onClick={() => go(step - 1)} className="mt-10 text-sm text-muted-foreground transition hover:text-foreground">
+                <button onClick={() => go(step - 1)} className="mt-10 font-light text-sm text-muted-foreground transition hover:text-foreground">
                   ← Voltar
                 </button>
               )}
@@ -171,11 +172,11 @@ function Index() {
 
           {done && (
             <div>
-              <p className="mb-4 font-display text-sm uppercase tracking-[0.3em] text-primary">Recebido</p>
-              <h2 className="font-display text-4xl font-extrabold leading-tight sm:text-6xl">
+              <p className="mb-4 font-display text-sm font-light uppercase tracking-[0.3em] text-primary">Recebido</p>
+              <h2 className="font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
                 Obrigado{answers["nome"] ? `, ${answers["nome"].split(" ")[0]}` : ""}!
               </h2>
-              <p className="mt-6 max-w-xl text-lg text-muted-foreground">
+              <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
                 Nosso time vai analisar seu briefing e entrar em contato em breve.
               </p>
             </div>
@@ -191,7 +192,7 @@ function FakeCaret({ value }: { value: string }) {
   const lastLine = value.split("\n").pop() ?? "";
   const lines = value.split("\n").length;
   return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 whitespace-pre-wrap break-words text-2xl text-transparent sm:text-3xl" style={{ lineHeight: "inherit" }}>
+    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 whitespace-pre-wrap break-words font-light text-2xl text-transparent sm:text-3xl" style={{ lineHeight: "inherit" }}>
       {lines > 1 ? value.slice(0, value.length - lastLine.length) : ""}
       {lastLine}
       <span className="caret-pulse ml-0.5 inline-block h-[1.1em] w-[3px] translate-y-[0.15em] rounded-full bg-primary" />
