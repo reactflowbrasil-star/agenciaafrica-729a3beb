@@ -107,6 +107,7 @@ function Index() {
   const stepRef = useRef(step);
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
+  const [narrationProgress, setNarrationProgress] = useState(0);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const musicRef = useRef<HTMLAudioElement>(null);
   const narrationRef = useRef<HTMLAudioElement>(null);
@@ -275,6 +276,7 @@ function Index() {
     const music = musicRef.current;
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
     audio.src = source;
+    setNarrationProgress(0);
     audio.currentTime = 0;
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
@@ -310,14 +312,22 @@ function Index() {
     }
 
     const source = done ? COMPLETION_AUDIO_URL : QUESTION_AUDIO_URLS[step];
+    const syncTypewriterToAudio = () => {
+      if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+      setNarrationProgress(Math.min(1, audio.currentTime / audio.duration));
+    };
     const onEnded = () => {
+      setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
       if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     };
 
+    setNarrationProgress(0);
+    audio.addEventListener("timeupdate", syncTypewriterToAudio);
     audio.onended = onEnded;
     audio.src = source;
     audio.currentTime = 0;
+    if (!done) audio.addEventListener("loadedmetadata", syncTypewriterToAudio);
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
@@ -326,6 +336,8 @@ function Index() {
 
     return () => {
       audio.pause();
+      audio.removeEventListener("timeupdate", syncTypewriterToAudio);
+      audio.removeEventListener("loadedmetadata", syncTypewriterToAudio);
       audio.onended = null;
     };
   }, [phase, step]);
@@ -439,7 +451,7 @@ function Index() {
                   <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zm-2.5-9v2.06a7 7 0 0 1 0 13.88V21a9 9 0 0 0 0-18z" /></svg>
                 </button>
               </div>
-              <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-7xl"><Em text={cur.q} /></h2>
+              <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-7xl"><Em text={cur.q} progress={narrationProgress} /></h2>
               {cur.hint && <p className="mt-3 font-light text-lg text-muted-foreground">{cur.hint}</p>}
 
               {cur.options ? (
@@ -564,28 +576,32 @@ function Index() {
 }
 
 /* Types the heading in while preserving its bold-marked segments. */
-function Em({ text }: { text: string }) {
+function Em({ text, progress }: { text: string; progress?: number }) {
   const segments = text.split("**");
   const plainText = segments.join("");
   const totalCharacters = Array.from(plainText).length;
-  const [visibleCharacters, setVisibleCharacters] = useState(0);
+  const [localVisibleCharacters, setLocalVisibleCharacters] = useState(0);
+  const visibleCharacters = progress === undefined
+    ? localVisibleCharacters
+    : Math.floor(totalCharacters * Math.max(0, Math.min(1, progress)));
 
   useEffect(() => {
+    if (progress !== undefined) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) {
-      setVisibleCharacters(totalCharacters);
+      setLocalVisibleCharacters(totalCharacters);
       return;
     }
 
-    setVisibleCharacters(0);
+    setLocalVisibleCharacters(0);
     let count = 0;
     const timer = window.setInterval(() => {
       count += 1;
-      setVisibleCharacters(count);
+      setLocalVisibleCharacters(count);
       if (count >= totalCharacters) window.clearInterval(timer);
     }, 34);
     return () => window.clearInterval(timer);
-  }, [text, totalCharacters]);
+  }, [text, totalCharacters, progress]);
 
   let previousCharacters = 0;
   const typedSegments = segments.map((part, index) => {
