@@ -343,7 +343,13 @@ function Index() {
     audio.currentTime = 0;
     syncTypewriterToAudio();
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
+    // If the voice-over cannot play at all (blocked, missing file), the heading
+    // must still appear, so the full question is shown after a short grace time.
+    const revealAnyway = window.setTimeout(() => {
+      if (!Number.isFinite(audio.duration) || audio.duration <= 0 || audio.paused) setNarrationProgress(1);
+    }, 1500);
     audio.play().catch(() => {
+      setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
       if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
@@ -351,6 +357,7 @@ function Index() {
 
     return () => {
       window.cancelAnimationFrame(raf);
+      window.clearTimeout(revealAnyway);
       audio.pause();
       audio.onended = null;
     };
