@@ -10,15 +10,17 @@ const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
 
 const PARTNER_LOGOS = [
-  { src: "/partner-logos/google_ads.svg", name: "Google Ads" },
-  { src: "/partner-logos/meta.svg", name: "Meta" },
-  { src: "/partner-logos/google.svg", name: "Google" },
-  { src: "/partner-logos/youtube.svg", name: "YouTube" },
-  { src: "/partner-logos/google_analytics.svg", name: "Google Analytics" },
-  { src: "/partner-logos/google_tag_manager.svg", name: "Google Tag Manager" },
-  { src: "/partner-logos/looker.svg", name: "Looker" },
-  { src: "/partner-logos/tiktok.svg", name: "TikTok" },
-  { src: "/partner-logos/hubspot.svg", name: "HubSpot" },
+  { src: "/partner-logos/google_ads.png", name: "Google Ads" },
+  { src: "/partner-logos/meta.png", name: "Meta" },
+  { src: "/partner-logos/google_partner.png", name: "Google Partner" },
+  { src: "/partner-logos/youtube.png", name: "YouTube" },
+  { src: "/partner-logos/google_analytics.png", name: "Google Analytics" },
+  { src: "/partner-logos/google_tag_manager.png", name: "Google Tag Manager" },
+  { src: "/partner-logos/google_workspace.png", name: "Google Workspace" },
+  { src: "/partner-logos/looker_studio.png", name: "Looker Studio" },
+  { src: "/partner-logos/tiktok.png", name: "TikTok" },
+  { src: "/partner-logos/rd_station.png", name: "RD Station" },
+  { src: "/partner-logos/hubspot.png", name: "HubSpot" },
 ] as const;
 
 type VoiceRecognitionEvent = {
