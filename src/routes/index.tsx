@@ -467,21 +467,21 @@ function Index() {
 
       <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <InfiniteSlider
-          gap={16}
+          gap={8}
           duration={38}
           reverse
-          className="mx-auto h-14 w-full max-w-[640px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+          className="mx-auto h-20 w-full max-w-[760px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         >
           {PARTNER_LOGOS.map((partner) => (
             <div
               key={partner.src}
-              className="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden sm:h-14 sm:w-24"
+              className="flex h-[4.5rem] w-28 shrink-0 items-center justify-center overflow-hidden sm:h-20 sm:w-36"
             >
               <img
                 src={partner.src}
                 alt={partner.name}
                 loading="lazy"
-                className="h-24 w-24 max-w-none shrink-0 object-contain sm:h-28 sm:w-28"
+                className="h-36 w-36 max-w-none shrink-0 object-contain sm:h-[10.5rem] sm:w-[10.5rem]"
               />
             </div>
           ))}
