@@ -267,16 +267,33 @@ function Index() {
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
       <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } .africa-typewriter-caret { animation: none; } }`}</style>
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
-      <audio ref={audioRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
+      <audio ref={musicRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
+      <audio ref={narrationRef} src={narrationAsset.url} preload="auto" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
-      {narrating && <Narration onDone={() => setNarrating(false)} />}
-      {showIntro && !narrating && (
+      {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
+      {phase === "logo" && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ${introFading ? "opacity-0" : "opacity-100"}`}>
           <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 2600ms ease-out both" }} />
         </div>
       )}
-      {showIntro && !musicPlaying && (
+      {phase === "start" && (
+        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-background/80 px-6 text-center backdrop-blur-sm">
+          <img src={logo} alt="AFRICA" className="h-auto w-[min(66vw,480px)] object-contain" />
+          <p className="mt-10 max-w-md font-light text-base text-muted-foreground sm:text-lg">
+            Narração e trilha de fundo tocam juntas.
+          </p>
+          <button
+            type="button"
+            onClick={beginIntro}
+            className="mt-8 inline-flex items-center gap-3 rounded-full bg-primary px-9 py-4 font-display text-lg font-bold text-primary-foreground transition hover:scale-105"
+          >
+            Iniciar
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
+          </button>
+        </div>
+      )}
+      {phase !== "start" && showIntro && !musicPlaying && (
         <button
           type="button"
           onClick={toggleBackgroundMusic}
