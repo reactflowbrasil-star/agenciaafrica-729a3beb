@@ -580,9 +580,11 @@ function Em({ text, progress }: { text: string; progress?: number }) {
   const totalCharacters = Array.from(plainText).length;
   const [localVisibleCharacters, setLocalVisibleCharacters] = useState(0);
   const clampedProgress = progress === undefined ? 0 : Math.max(0, Math.min(1, progress));
-  // Reveal more of the question early so it keeps pace with spoken words,
-  // while still finishing exactly when the narration ends.
-  const synchronizedProgress = 1 - Math.pow(1 - clampedProgress, 1.6);
+  // Type the whole question well before the voice-over finishes, so the line is
+  // always complete and readable by the time the spoken words catch up.
+  const TYPE_SPAN = 0.55;
+  const spanned = Math.min(1, clampedProgress / TYPE_SPAN);
+  const synchronizedProgress = 1 - Math.pow(1 - spanned, 1.9);
   const visibleCharacters = progress === undefined
     ? localVisibleCharacters
     : Math.floor(totalCharacters * synchronizedProgress);
