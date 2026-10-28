@@ -478,25 +478,9 @@ function Index() {
                 </>
               ) : (
                 <div className="mt-10">
-                  <div className="relative">
-                    <textarea
-                      ref={inputRef}
-                      rows={1}
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
-                      }}
-                      placeholder="Digite sua resposta..."
-                      className="w-full resize-none overflow-hidden border-b-2 border-border bg-transparent pb-3 font-light text-2xl caret-primary outline-none transition-colors placeholder:text-foreground/25 focus:border-primary sm:text-3xl"
-                      style={{ caretColor: "transparent" }}
-                    />
-                    <FakeCaret value={value} />
-                  </div>
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <button onClick={() => submit()} disabled={!value.trim()} className="rounded-full bg-primary px-6 py-3 font-display font-bold text-primary-foreground transition hover:scale-105 disabled:opacity-30 disabled:hover:scale-100">
-                      OK ✓
-                    </button>
+                  <OrbAnswerInput key={cur.id} value={value} onChange={setValue} onSubmit={(t) => submit(t)} inputRef={inputRef} />
+                  <div className="-mt-36 flex flex-wrap items-center gap-3">
+
                     <button
                       type="button"
                       onClick={toggleVoiceInput}
