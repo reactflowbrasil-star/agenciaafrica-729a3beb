@@ -313,9 +313,23 @@ function Index() {
     }
 
     const source = done ? COMPLETION_AUDIO_URL : QUESTION_AUDIO_URLS[step];
+    // The heading is typed one character at a time, so the audio clock only has
+    // to publish a new value when the next character actually becomes due.
+    // That keeps the reveal smooth without re-rendering the page every frame.
+    const headingChars = Math.max(1, Array.from(cur ? cur.q.split("**").join("") : "").length);
+    let raf = 0;
+    let revealed = -1;
     const syncTypewriterToAudio = () => {
       if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
-      setNarrationProgress(Math.min(1, audio.currentTime / audio.duration));
+      const next = Math.min(1, audio.currentTime / audio.duration);
+      const characters = Math.floor(next * headingChars);
+      if (next < 1 && characters === revealed) return;
+      revealed = characters;
+      setNarrationProgress(next);
+    };
+    const tick = () => {
+      syncTypewriterToAudio();
+      raf = window.requestAnimationFrame(tick);
     };
     const onEnded = () => {
       setNarrationProgress(1);
@@ -324,21 +338,27 @@ function Index() {
     };
 
     setNarrationProgress(0);
-    audio.addEventListener("timeupdate", syncTypewriterToAudio);
     audio.onended = onEnded;
     audio.src = source ?? "";
     audio.currentTime = 0;
-    if (!done) audio.addEventListener("loadedmetadata", syncTypewriterToAudio);
+    syncTypewriterToAudio();
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
+    // If the voice-over cannot play at all (blocked, missing file), the heading
+    // must still appear, so the full question is shown after a short grace time.
+    const revealAnyway = window.setTimeout(() => {
+      if (!Number.isFinite(audio.duration) || audio.duration <= 0 || audio.paused) setNarrationProgress(1);
+    }, 1500);
     audio.play().catch(() => {
+      setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
       if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
+    raf = window.requestAnimationFrame(tick);
 
     return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(revealAnyway);
       audio.pause();
-      audio.removeEventListener("timeupdate", syncTypewriterToAudio);
-      audio.removeEventListener("loadedmetadata", syncTypewriterToAudio);
       audio.onended = null;
     };
   }, [phase, step]);
@@ -538,12 +558,12 @@ function Index() {
         </div>
       </section>
 
-      <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+      <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 pb-3 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <InfiniteSlider
-          gap={12}
-          duration={32}
+          gap={26}
+          duration={46}
           reverse
-          className="mx-auto w-full max-w-[980px] [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
+          className="mx-auto w-full max-w-[760px] [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]"
         >
           {PARTNER_LOGOS.map((partner) => (
             <img
@@ -551,7 +571,7 @@ function Index() {
               src={partner.src}
               alt={partner.name}
               loading="lazy"
-              className="h-[98px] w-[98px] shrink-0 object-contain opacity-90"
+              className="h-10 w-10 shrink-0 object-contain opacity-45 transition-opacity duration-300 hover:opacity-90 sm:h-12 sm:w-12"
             />
           ))}
         </InfiniteSlider>
@@ -567,9 +587,11 @@ function Em({ text, progress }: { text: string; progress?: number }) {
   const totalCharacters = Array.from(plainText).length;
   const [localVisibleCharacters, setLocalVisibleCharacters] = useState(0);
   const clampedProgress = progress === undefined ? 0 : Math.max(0, Math.min(1, progress));
-  // Reveal more of the question early so it keeps pace with spoken words,
-  // while still finishing exactly when the narration ends.
-  const synchronizedProgress = 1 - Math.pow(1 - clampedProgress, 1.6);
+  // Type the whole question well before the voice-over finishes, so the line is
+  // always complete and readable by the time the spoken words catch up.
+  const TYPE_SPAN = 0.55;
+  const spanned = Math.min(1, clampedProgress / TYPE_SPAN);
+  const synchronizedProgress = 1 - Math.pow(1 - spanned, 1.9);
   const visibleCharacters = progress === undefined
     ? localVisibleCharacters
     : Math.floor(totalCharacters * synchronizedProgress);
