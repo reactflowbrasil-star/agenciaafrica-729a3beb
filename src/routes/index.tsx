@@ -261,7 +261,7 @@ function Index() {
 
   return (
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
-      <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } }`}</style>
+      <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } .africa-typewriter-caret { animation: none; } }`}</style>
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
       <audio ref={audioRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
@@ -429,17 +429,47 @@ function Index() {
   );
 }
 
-/* Renders **bold** segments of a string in bold; the rest keeps the thin title weight. */
+/* Types the heading in while preserving its bold-marked segments. */
 function Em({ text }: { text: string }) {
+  const segments = text.split("**");
+  const plainText = segments.join("");
+  const totalCharacters = Array.from(plainText).length;
+  const [visibleCharacters, setVisibleCharacters] = useState(0);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) {
+      setVisibleCharacters(totalCharacters);
+      return;
+    }
+
+    setVisibleCharacters(0);
+    let count = 0;
+    const timer = window.setInterval(() => {
+      count += 1;
+      setVisibleCharacters(count);
+      if (count >= totalCharacters) window.clearInterval(timer);
+    }, 34);
+    return () => window.clearInterval(timer);
+  }, [text, totalCharacters]);
+
+  let previousCharacters = 0;
+  const typedSegments = segments.map((part, index) => {
+    const characters = Array.from(part);
+    const shown = characters.slice(0, Math.max(0, visibleCharacters - previousCharacters)).join("");
+    previousCharacters += characters.length;
+    return index % 2 === 1
+      ? <b key={index} className="font-bold whitespace-nowrap">{shown}</b>
+      : <span key={index}>{shown}</span>;
+  });
+
   return (
     <>
-      {text.split("**").map((part, i) =>
-        i % 2 === 1 ? (
-          <b key={i} className="font-bold whitespace-nowrap">{part}</b>
-        ) : (
-          <span key={i}>{part}</span>
-        ),
-      )}
+      <span className="sr-only">{plainText}</span>
+      <span aria-hidden="true">
+        {typedSegments}
+        <span className="africa-typewriter-caret" />
+      </span>
     </>
   );
 }
