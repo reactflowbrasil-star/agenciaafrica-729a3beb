@@ -25,13 +25,13 @@ const distributeLogos = (allLogos: readonly Logo[], columnCount: number): Logo[]
   const columns: Logo[][] = Array.from({ length: Math.min(columnCount, stableLogos.length) }, () => [])
 
   stableLogos.forEach((logo, index) => {
-    columns[index % columns.length].push(logo)
+    columns[index % columns.length]?.push(logo)
   })
 
   const maxLength = Math.max(...columns.map((column) => column.length))
   columns.forEach((column, index) => {
     while (column.length < maxLength) {
-      column.push(stableLogos[index % stableLogos.length])
+      column.push(stableLogos[index % stableLogos.length]!)
     }
   })
 
@@ -44,6 +44,7 @@ const LogoColumn = React.memo(({ logos, index, currentTime }: LogoColumnProps) =
   const adjustedTime = (currentTime + columnDelay) % (cycleInterval * logos.length)
   const currentIndex = Math.floor(adjustedTime / cycleInterval)
   const currentLogo = useMemo(() => logos[currentIndex], [logos, currentIndex])
+  if (!currentLogo) return null
 
   return (
     <div
