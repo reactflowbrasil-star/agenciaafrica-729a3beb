@@ -510,9 +510,27 @@ function Narration({ onDone }: { onDone: () => void }) {
     const audio = ref.current;
     if (!audio) return;
     audio.play().catch(() => setBlocked(true));
+    // currentTime updates in coarse steps in some browsers; interpolate with
+    // the frame clock so typing advances smoothly instead of in jumps.
     let raf = 0;
-    const tick = () => {
-      setT(audio.currentTime);
+    let lastAudio = -1;
+    let lastWall = 0;
+    let lastShown = -1;
+    const tick = (now: number) => {
+      let time = audio.currentTime;
+      if (audio.paused) {
+        lastAudio = time;
+      } else if (time !== lastAudio) {
+        lastAudio = time;
+        lastWall = now;
+      } else {
+        time = lastAudio + (now - lastWall) / 1000;
+      }
+      // Re-render only when time moves meaningfully (~30fps).
+      if (Math.abs(time - lastShown) > 0.03) {
+        lastShown = time;
+        setT(time);
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -523,16 +541,18 @@ function Narration({ onDone }: { onDone: () => void }) {
     ref.current?.play().then(() => setBlocked(false)).catch(() => {});
   };
 
-  const phrase = [...NARRATION].reverse().find((p) => (p[0]?.[1] ?? 0) <= t) ?? null;
-  let text = "";
+  const phraseIndex = NARRATION.findLastIndex((p) => (p[0]?.[1] ?? 0) <= t);
+  const phrase = phraseIndex >= 0 ? NARRATION[phraseIndex]! : null;
+  const fullText = phrase ? phrase.map(([w]) => w).join(" ") : "";
+  let typed = 0;
   if (phrase && !blocked) {
-    const all = NARRATION.flat();
+    const nextPhraseStart = NARRATION[phraseIndex + 1]?.[0]?.[1];
     phrase.forEach(([word, s], i) => {
       if (s > t) return;
-      const next = phrase[i + 1]?.[1] ?? all[all.findIndex((w) => w[1] === s && w[0] === word) + 1]?.[1] ?? s + 0.5;
-      const dur = Math.min(Math.max(next - s, 0.1), 0.45);
+      const next = phrase[i + 1]?.[1] ?? nextPhraseStart ?? s + 0.5;
+      const dur = Math.min(Math.max(next - s, 0.12), 0.4);
       const chars = Math.ceil(word.length * Math.min(1, (t - s) / dur));
-      text += (i ? " " : "") + word.slice(0, chars);
+      typed = phrase.slice(0, i).reduce((n, [w]) => n + w.length + 1, 0) + chars;
     });
   }
 
@@ -545,8 +565,10 @@ function Narration({ onDone }: { onDone: () => void }) {
         </button>
       ) : (
         <p aria-live="polite" className="max-w-4xl text-balance text-center text-3xl font-extralight leading-tight tracking-[-0.02em] text-white sm:text-6xl">
-          {text}
+          <span>{fullText.slice(0, typed)}</span>
           <span aria-hidden="true" className="africa-typewriter-caret" />
+          {/* Untyped rest is kept invisible so lines never re-wrap while typing. */}
+          <span aria-hidden="true" className="opacity-0">{fullText.slice(typed)}</span>
         </p>
       )}
       <button type="button" onClick={() => { ref.current?.pause(); finish(); }} className="absolute bottom-8 right-6 text-sm font-light text-white/60 transition hover:text-white">
