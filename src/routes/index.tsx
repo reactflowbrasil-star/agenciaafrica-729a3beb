@@ -493,29 +493,34 @@ function FakeCaret({ value }: { value: string }) {
 }
 
 /* Voice-over intro: types each phrase word by word in sync with the narration audio. */
-function Narration({ onDone }: { onDone: () => void }) {
-  const ref = useRef<HTMLAudioElement>(null);
+function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement | null>; onDone: () => void }) {
   const [t, setT] = useState(0);
   const [blocked, setBlocked] = useState(false);
   const [fading, setFading] = useState(false);
   const doneRef = useRef(false);
-  const finish = () => {
-    if (doneRef.current) return;
-    doneRef.current = true;
-    setFading(true);
-    window.setTimeout(onDone, 800);
-  };
+  const blockedRef = useRef(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
-    const audio = ref.current;
+    const audio = audioRef.current;
     if (!audio) return;
-    audio.play().catch(() => setBlocked(true));
+
+    const finish = () => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      setFading(true);
+      window.setTimeout(() => onDoneRef.current(), 800);
+    };
+    audio.addEventListener("ended", finish);
+
     // currentTime updates in coarse steps in some browsers; interpolate with
     // the frame clock so typing advances smoothly instead of in jumps.
     let raf = 0;
     let lastAudio = -1;
     let lastWall = 0;
     let lastShown = -1;
+    const beganAt = performance.now();
     const tick = (now: number) => {
       let time = audio.currentTime;
       if (audio.paused) {
@@ -531,14 +536,23 @@ function Narration({ onDone }: { onDone: () => void }) {
         lastShown = time;
         setT(time);
       }
+      // Safety net: if the voice-over never actually started, offer a retry.
+      const silent = audio.paused && performance.now() - beganAt > 2500;
+      if (silent !== blockedRef.current) {
+        blockedRef.current = silent;
+        setBlocked(silent);
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      audio.removeEventListener("ended", finish);
+    };
   }, []);
 
   const start = () => {
-    ref.current?.play().then(() => setBlocked(false)).catch(() => {});
+    audioRef.current?.play().then(() => setBlocked(false)).catch(() => {});
   };
 
   let phraseIndex = -1;
@@ -559,10 +573,9 @@ function Narration({ onDone }: { onDone: () => void }) {
 
   return (
     <div className={`fixed inset-0 z-[55] flex items-center justify-center bg-black/40 px-6 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>
-      <audio ref={ref} src={narrationAsset.url} preload="auto" onEnded={finish} />
       {blocked ? (
         <button type="button" onClick={start} className="rounded-full border border-white/40 bg-black/40 px-6 py-3 text-lg font-light text-white backdrop-blur transition hover:bg-black/60">
-          Toque para começar ▶
+          Toque para continuar ▶
         </button>
       ) : (
         <p aria-live="polite" className="max-w-4xl text-balance text-center text-3xl font-extralight leading-tight tracking-[-0.02em] text-white sm:text-6xl">
@@ -572,7 +585,7 @@ function Narration({ onDone }: { onDone: () => void }) {
           <span aria-hidden="true" className="opacity-0">{fullText.slice(typed)}</span>
         </p>
       )}
-      <button type="button" onClick={() => { ref.current?.pause(); finish(); }} className="absolute bottom-8 right-6 text-sm font-light text-white/60 transition hover:text-white">
+      <button type="button" onClick={() => { audioRef.current?.pause(); if (!doneRef.current) { doneRef.current = true; setFading(true); window.setTimeout(() => onDoneRef.current(), 800); } }} className="absolute bottom-8 right-6 text-sm font-light text-white/60 transition hover:text-white">
         Pular intro →
       </button>
     </div>
