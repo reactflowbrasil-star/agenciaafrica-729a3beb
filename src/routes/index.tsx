@@ -475,7 +475,7 @@ function Index() {
           {PARTNER_LOGOS.map((partner) => (
             <div
               key={partner.src}
-              className="flex h-20 w-36 shrink-0 items-center justify-center overflow-hidden sm:h-24 sm:w-44"
+              className="flex h-20 w-24 shrink-0 items-center justify-center overflow-hidden sm:h-24 sm:w-28"
             >
               <img
                 src={partner.src}
