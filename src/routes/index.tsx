@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
-import { NARRATION } from "@/lib/narration";
+import { getNarrationFrame } from "@/lib/narration";
+import { Button } from "@/components/ui/button";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -289,19 +290,17 @@ function Index() {
         </div>
       )}
       {phase === "start" && (
-        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-background/80 px-6 text-center backdrop-blur-sm">
-          <img src={logo} alt="AFRICA" className="h-auto w-[min(66vw,480px)] object-contain" />
-          <p className="mt-10 max-w-md font-light text-base text-muted-foreground sm:text-lg">
-            Narração e trilha de fundo tocam juntas.
-          </p>
-          <button
+        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-12 bg-background/65 px-6 text-center sm:gap-16">
+          <img src={logo} alt="AFRICA" className="h-auto w-[min(58vw,320px)] object-contain" />
+          <Button
             type="button"
             onClick={beginIntro}
-            className="mt-8 inline-flex items-center gap-3 rounded-full bg-primary px-9 py-4 font-display text-lg font-bold text-primary-foreground transition hover:scale-105"
+            variant="ghost"
+            className="h-12 gap-4 rounded-none border-b border-foreground/35 px-1 font-display text-base font-light text-foreground hover:bg-transparent hover:text-primary"
           >
             Iniciar
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
-          </button>
+          </Button>
         </div>
       )}
       {phase !== "start" && showIntro && !musicPlaying && (
@@ -542,8 +541,8 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     };
     audio.addEventListener("ended", finish);
 
-    // currentTime updates in coarse steps in some browsers; interpolate with
-    // the frame clock so typing advances smoothly instead of in jumps.
+    // Audio is the master clock: bound interpolation to avoid accumulating
+    // drift, and freeze text when playback pauses or buffers.
     let raf = 0;
     let lastAudio = -1;
     let lastWall = 0;
@@ -551,16 +550,17 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     const beganAt = performance.now();
     const tick = (now: number) => {
       let time = audio.currentTime;
-      if (audio.paused) {
+      if (audio.paused || audio.readyState < 3) {
         lastAudio = time;
+        lastWall = now;
       } else if (time !== lastAudio) {
         lastAudio = time;
         lastWall = now;
       } else {
-        time = lastAudio + (now - lastWall) / 1000;
+        time = lastAudio + Math.min(0.08, (now - lastWall) / 1000) * audio.playbackRate;
       }
-      // Re-render only when time moves meaningfully (~30fps).
-      if (Math.abs(time - lastShown) > 0.03) {
+      // Final words can be only 30ms apart: update on every animation frame.
+      if (time !== lastShown) {
         lastShown = time;
         setT(time);
       }
@@ -583,21 +583,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     audioRef.current?.play().then(() => setBlocked(false)).catch(() => {});
   };
 
-  let phraseIndex = -1;
-  NARRATION.forEach((p, i) => { if ((p[0]?.[1] ?? 0) <= t) phraseIndex = i; });
-  const phrase = phraseIndex >= 0 ? NARRATION[phraseIndex]! : null;
-  const fullText = phrase ? phrase.map(([w]) => w).join(" ") : "";
-  let typed = 0;
-  if (phrase && !blocked) {
-    const nextPhraseStart = NARRATION[phraseIndex + 1]?.[0]?.[1];
-    phrase.forEach(([word, s], i) => {
-      if (s > t) return;
-      const next = phrase[i + 1]?.[1] ?? nextPhraseStart ?? s + 0.5;
-      const dur = Math.min(Math.max(next - s, 0.12), 0.4);
-      const chars = Math.ceil(word.length * Math.min(1, (t - s) / dur));
-      typed = phrase.slice(0, i).reduce((n, [w]) => n + w.length + 1, 0) + chars;
-    });
-  }
+  const { fullText, typed } = getNarrationFrame(t);
 
   return (
     <div className={`fixed inset-0 z-[55] flex items-center justify-center bg-black/40 px-6 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>
