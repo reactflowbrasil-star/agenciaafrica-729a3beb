@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
+import { NARRATION } from "@/lib/narration";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -100,7 +102,9 @@ function Index() {
     };
   }, []);
 
+  const [narrating, setNarrating] = useState(true);
   useEffect(() => {
+    if (narrating) return;
     const fadeTimer = window.setTimeout(() => setIntroFading(true), 9000);
     const finishTimer = window.setTimeout(() => {
       setShowIntro(false);
@@ -110,7 +114,7 @@ function Index() {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
     };
-  }, []);
+  }, [narrating]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
@@ -266,7 +270,8 @@ function Index() {
       <audio ref={audioRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
-      {showIntro && (
+      {narrating && <Narration onDone={() => setNarrating(false)} />}
+      {showIntro && !narrating && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ${introFading ? "opacity-0" : "opacity-100"}`}>
           <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 2600ms ease-out both" }} />
         </div>
@@ -483,6 +488,70 @@ function FakeCaret({ value }: { value: string }) {
       {lines > 1 ? value.slice(0, value.length - lastLine.length) : ""}
       {lastLine}
       <span className="caret-pulse ml-0.5 inline-block h-[1.1em] w-[3px] translate-y-[0.15em] rounded-full bg-primary" />
+    </div>
+  );
+}
+
+/* Voice-over intro: types each phrase word by word in sync with the narration audio. */
+function Narration({ onDone }: { onDone: () => void }) {
+  const ref = useRef<HTMLAudioElement>(null);
+  const [t, setT] = useState(0);
+  const [blocked, setBlocked] = useState(false);
+  const [fading, setFading] = useState(false);
+  const doneRef = useRef(false);
+  const finish = () => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    setFading(true);
+    window.setTimeout(onDone, 800);
+  };
+
+  useEffect(() => {
+    const audio = ref.current;
+    if (!audio) return;
+    audio.play().catch(() => setBlocked(true));
+    let raf = 0;
+    const tick = () => {
+      setT(audio.currentTime);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const start = () => {
+    ref.current?.play().then(() => setBlocked(false)).catch(() => {});
+  };
+
+  const phrase = [...NARRATION].reverse().find((p) => (p[0]?.[1] ?? 0) <= t) ?? null;
+  let text = "";
+  if (phrase && !blocked) {
+    const all = NARRATION.flat();
+    phrase.forEach(([word, s], i) => {
+      if (s > t) return;
+      const next = phrase[i + 1]?.[1] ?? all[all.findIndex((w) => w[1] === s && w[0] === word) + 1]?.[1] ?? s + 0.5;
+      const dur = Math.min(Math.max(next - s, 0.1), 0.45);
+      const chars = Math.ceil(word.length * Math.min(1, (t - s) / dur));
+      text += (i ? " " : "") + word.slice(0, chars);
+    });
+  }
+
+  return (
+    <div className={`fixed inset-0 z-[55] flex items-center justify-center bg-black/40 px-6 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>
+      <audio ref={ref} src={narrationAsset.url} preload="auto" onEnded={finish} />
+      {blocked ? (
+        <button type="button" onClick={start} className="rounded-full border border-white/40 bg-black/40 px-6 py-3 text-lg font-light text-white backdrop-blur transition hover:bg-black/60">
+          Toque para começar ▶
+        </button>
+      ) : (
+        <p aria-live="polite" className="max-w-4xl text-balance text-center text-3xl font-extralight leading-tight tracking-[-0.02em] text-white sm:text-6xl">
+          {text}
+          <span aria-hidden="true" className="africa-typewriter-caret" />
+        </p>
+      )}
+      <button type="button" onClick={() => { ref.current?.pause(); finish(); }} className="absolute bottom-8 right-6 text-sm font-light text-white/60 transition hover:text-white">
+        Pular intro →
+      </button>
     </div>
   );
 }
