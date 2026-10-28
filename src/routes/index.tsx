@@ -5,6 +5,7 @@ import { NARRATION } from "@/lib/narration";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
+const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
 
 type VoiceRecognitionEvent = {
   results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
@@ -278,7 +279,7 @@ function Index() {
       <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } .africa-typewriter-caret { animation: none; } }`}</style>
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
       <audio ref={musicRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
-      <audio ref={narrationRef} src={narrationAsset.url} preload="auto" />
+      <audio ref={narrationRef} src={narrationUrl} preload="auto" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
