@@ -175,7 +175,8 @@
 @keyframes orb-pop { 0% { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
 @keyframes orb-breathe { 0%,100% { transform: scale(1); opacity: .55; } 50% { transform: scale(1.15); opacity: .9; } }
 
-.orb-root { position: relative; min-height: 15rem; }
+.orb-root { position: relative; min-height: 64px; transition: min-height .5s cubic-bezier(.65,0,.35,1); }
+.orb-root:not([data-phase="idle"]) { min-height: 15rem; }
 .orb-pill {
   position: relative; display: flex; align-items: flex-end; gap: .75rem;
   width: 100%; min-height: 64px; padding: .7rem .7rem .7rem 1.1rem;

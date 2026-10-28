@@ -479,7 +479,7 @@ function Index() {
               ) : (
                 <div className="mt-10">
                   <OrbAnswerInput key={cur.id} value={value} onChange={setValue} onSubmit={(t) => submit(t)} inputRef={inputRef} />
-                  <div className="-mt-36 flex flex-wrap items-center gap-3">
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
 
                     <button
                       type="button"
