@@ -91,6 +91,8 @@ const QUESTIONS: Q[] = [
   { id: "extra", q: "Algo mais que **devemos saber**?", hint: "Prazos, materiais, expectativas.", long: true },
 ];
 
+const QUESTION_AUDIO_URLS = QUESTIONS.map((_, index) => `/audio/questions/q${String(index + 1).padStart(2, "0")}.mp3`);
+
 function Index() {
   const [step, setStep] = useState(-2);
   const [phase, setPhase] = useState<Phase>("start");
@@ -107,6 +109,7 @@ function Index() {
   const [musicPlaying, setMusicPlaying] = useState(false);
   const musicRef = useRef<HTMLAudioElement>(null);
   const narrationRef = useRef<HTMLAudioElement>(null);
+  const questionNarrationRef = useRef<HTMLAudioElement>(null);
   const startedRef = useRef(false);
   const showIntro = phase !== "briefing";
 
@@ -158,11 +161,6 @@ function Index() {
       setValue(QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "");
       voiceBaseValueRef.current = QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "";
       changingStepRef.current = false;
-      if (voiceModeRef.current && next < QUESTIONS.length) {
-        window.setTimeout(() => {
-          if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
-        }, 200);
-      }
       setLeaving(false);
     }, 450);
   };
@@ -246,9 +244,9 @@ function Index() {
       recognition.onend = () => {
         voiceRecognitionRef.current = null;
         setIsListening(false);
-        if (voiceModeRef.current && !changingStepRef.current && stepRef.current < QUESTIONS.length) {
+        if (voiceModeRef.current && !changingStepRef.current && stepRef.current < QUESTIONS.length && questionNarrationRef.current?.paused !== false) {
           window.setTimeout(() => {
-            if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+            if (voiceModeRef.current && !voiceRecognitionRef.current && questionNarrationRef.current?.paused !== false) startVoiceRecognition();
           }, 250);
         } else {
           setVoiceStatus("");
@@ -265,6 +263,22 @@ function Index() {
     }
   };
 
+  const replayQuestionNarration = () => {
+    const audio = questionNarrationRef.current;
+    if (!audio || !cur) return;
+
+    voiceRecognitionRef.current?.stop();
+    voiceRecognitionRef.current = null;
+    setIsListening(false);
+    const music = musicRef.current;
+    if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
+    audio.currentTime = 0;
+    audio.play().catch(() => {
+      if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
+      if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+    });
+  };
+
   const toggleVoiceInput = () => {
     if (voiceModeRef.current) {
       stopVoiceMode();
@@ -272,9 +286,46 @@ function Index() {
     }
     voiceModeRef.current = true;
     setVoiceMode(true);
+    if (questionNarrationRef.current && !questionNarrationRef.current.paused) {
+      setVoiceStatus("A narração está tocando. O microfone será ativado ao terminar.");
+      return;
+    }
     setVoiceStatus("Modo de voz ativo. Fale suas respostas; toque em Desligar voz para encerrar.");
     startVoiceRecognition();
   };
+
+  useEffect(() => {
+    const audio = questionNarrationRef.current;
+    if (!audio) return;
+
+    if (phase !== "briefing" || !cur) {
+      audio.pause();
+      audio.removeAttribute("src");
+      const music = musicRef.current;
+      if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.8);
+      return;
+    }
+
+    const music = musicRef.current;
+    const onEnded = () => {
+      if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
+      if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+    };
+
+    audio.onended = onEnded;
+    audio.src = QUESTION_AUDIO_URLS[step];
+    audio.currentTime = 0;
+    if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
+    audio.play().catch(() => {
+      if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
+      if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+    });
+
+    return () => {
+      audio.pause();
+      audio.onended = null;
+    };
+  }, [phase, step]);
 
   useEffect(() => {
     const el = inputRef.current;
@@ -296,6 +347,7 @@ function Index() {
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
       <audio ref={musicRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <audio ref={narrationRef} src={narrationUrl} preload="auto" />
+      <audio ref={questionNarrationRef} preload="auto" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
@@ -372,7 +424,18 @@ function Index() {
 
           {cur && (
             <div>
-              <p className="mb-3 font-display text-sm font-light text-primary">{step + 1} →</p>
+              <div className="mb-3 flex items-center gap-3">
+                <p className="font-display text-sm font-light text-primary">{step + 1} →</p>
+                <button
+                  type="button"
+                  onClick={replayQuestionNarration}
+                  aria-label="Ouvir a pergunta novamente"
+                  title="Ouvir a pergunta novamente"
+                  className="grid h-8 w-8 place-items-center rounded-full border border-border/70 bg-background/30 text-foreground/80 backdrop-blur transition hover:border-primary hover:text-primary"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zm-2.5-9v2.06a7 7 0 0 1 0 13.88V21a9 9 0 0 0 0-18z" /></svg>
+                </button>
+              </div>
               <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-7xl"><Em text={cur.q} /></h2>
               {cur.hint && <p className="mt-3 font-light text-lg text-muted-foreground">{cur.hint}</p>}
 
