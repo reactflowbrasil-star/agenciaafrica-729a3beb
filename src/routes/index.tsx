@@ -470,18 +470,18 @@ function Index() {
           gap={16}
           duration={38}
           reverse
-          className="mx-auto h-9 w-full max-w-[420px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+          className="mx-auto h-14 w-full max-w-[640px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         >
           {PARTNER_LOGOS.map((partner) => (
             <div
               key={partner.src}
-              className="flex h-7 w-11 shrink-0 items-center justify-center overflow-hidden sm:h-8 sm:w-12"
+              className="flex h-12 w-20 shrink-0 items-center justify-center overflow-hidden sm:h-14 sm:w-24"
             >
               <img
                 src={partner.src}
                 alt={partner.name}
                 loading="lazy"
-                className="h-16 w-16 max-w-none shrink-0 object-contain"
+                className="h-24 w-24 max-w-none shrink-0 object-contain sm:h-28 sm:w-28"
               />
             </div>
           ))}
