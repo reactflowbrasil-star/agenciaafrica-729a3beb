@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import { NARRATION } from "@/lib/narration";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
@@ -40,6 +40,23 @@ export const Route = createFileRoute("/")({
 });
 
 type Q = { id: string; q: string; hint?: string; options?: string[]; long?: boolean; type?: string };
+type Phase = "start" | "narrating" | "logo" | "briefing";
+
+// The soundtrack sits low under the voice-over, then returns to full level.
+const MUSIC_DUCKED = 0.25;
+const MUSIC_FULL = 0.7;
+
+/* Slides an audio element's volume so level changes are never abrupt. */
+function rampVolume(audio: HTMLAudioElement, to: number, seconds: number) {
+  const from = audio.volume;
+  const beganAt = performance.now();
+  const advance = () => {
+    const k = Math.min(1, (performance.now() - beganAt) / (seconds * 1000));
+    audio.volume = from + (to - from) * k;
+    if (k < 1) requestAnimationFrame(advance);
+  };
+  advance();
+}
 
 const QUESTIONS: Q[] = [
   { id: "nome", q: "Qual é o seu **nome**?", hint: "Vamos começar pelo básico." },
@@ -59,7 +76,7 @@ const QUESTIONS: Q[] = [
 
 function Index() {
   const [step, setStep] = useState(-2);
-  const [showIntro, setShowIntro] = useState(true);
+  const [phase, setPhase] = useState<Phase>("start");
   const [introFading, setIntroFading] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -71,50 +88,43 @@ function Index() {
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
   const [musicPlaying, setMusicPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const musicRef = useRef<HTMLAudioElement>(null);
+  const narrationRef = useRef<HTMLAudioElement>(null);
+  const startedRef = useRef(false);
+  const showIntro = phase !== "briefing";
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const startMusic = () => {
-      audio.play()
+  // One tap on "Iniciar" starts both soundtracks together: the looping
+  // background track and the voice-over. Browsers only allow audible playback
+  // from inside a gesture, so both play() calls live in this handler. The track
+  // stays ducked under the narration and comes back up once the voice ends.
+  const beginIntro = () => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    const music = musicRef.current;
+    if (music) {
+      music.volume = MUSIC_DUCKED;
+      music.play()
         .then(() => setMusicPlaying(true))
         .catch(() => setMusicPlaying(false));
-    };
-    const unlockMusic = () => {
-      startMusic();
-      if (!audio.paused) {
-        window.removeEventListener("pointerdown", unlockMusic);
-        window.removeEventListener("keydown", unlockMusic);
-      }
-    };
+    }
+    narrationRef.current?.play().catch(() => {});
+    setPhase("narrating");
+  };
 
-    // Browsers block audible autoplay until a user gesture. Retry on the first
-    // tap or key press so the soundtrack starts without requiring the small
-    // player to be found.
-    startMusic();
-    window.addEventListener("pointerdown", unlockMusic);
-    window.addEventListener("keydown", unlockMusic);
-    return () => {
-      window.removeEventListener("pointerdown", unlockMusic);
-      window.removeEventListener("keydown", unlockMusic);
-    };
-  }, []);
-
-  const [narrating, setNarrating] = useState(true);
   useEffect(() => {
-    if (narrating) return;
+    if (phase !== "logo") return;
     const fadeTimer = window.setTimeout(() => setIntroFading(true), 9000);
     const finishTimer = window.setTimeout(() => {
-      setShowIntro(false);
+      const music = musicRef.current;
+      if (music) rampVolume(music, MUSIC_FULL, 2.5);
+      setPhase("briefing");
       setStep(0);
     }, 10000);
     return () => {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
     };
-  }, [narrating]);
+  }, [phase]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
@@ -155,7 +165,7 @@ function Index() {
   }, []);
 
   const toggleBackgroundMusic = async () => {
-    const audio = audioRef.current;
+    const audio = musicRef.current;
     if (!audio) return;
     if (audio.paused) {
       try {
@@ -267,16 +277,33 @@ function Index() {
     <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
       <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } .africa-typewriter-caret { animation: none; } }`}</style>
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
-      <audio ref={audioRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
+      <audio ref={musicRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
+      <audio ref={narrationRef} src={narrationAsset.url} preload="auto" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
-      {narrating && <Narration onDone={() => setNarrating(false)} />}
-      {showIntro && !narrating && (
+      {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
+      {phase === "logo" && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ${introFading ? "opacity-0" : "opacity-100"}`}>
           <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 2600ms ease-out both" }} />
         </div>
       )}
-      {showIntro && !musicPlaying && (
+      {phase === "start" && (
+        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center bg-background/80 px-6 text-center backdrop-blur-sm">
+          <img src={logo} alt="AFRICA" className="h-auto w-[min(66vw,480px)] object-contain" />
+          <p className="mt-10 max-w-md font-light text-base text-muted-foreground sm:text-lg">
+            Narração e trilha de fundo tocam juntas.
+          </p>
+          <button
+            type="button"
+            onClick={beginIntro}
+            className="mt-8 inline-flex items-center gap-3 rounded-full bg-primary px-9 py-4 font-display text-lg font-bold text-primary-foreground transition hover:scale-105"
+          >
+            Iniciar
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
+          </button>
+        </div>
+      )}
+      {phase !== "start" && showIntro && !musicPlaying && (
         <button
           type="button"
           onClick={toggleBackgroundMusic}
@@ -493,29 +520,34 @@ function FakeCaret({ value }: { value: string }) {
 }
 
 /* Voice-over intro: types each phrase word by word in sync with the narration audio. */
-function Narration({ onDone }: { onDone: () => void }) {
-  const ref = useRef<HTMLAudioElement>(null);
+function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement | null>; onDone: () => void }) {
   const [t, setT] = useState(0);
   const [blocked, setBlocked] = useState(false);
   const [fading, setFading] = useState(false);
   const doneRef = useRef(false);
-  const finish = () => {
-    if (doneRef.current) return;
-    doneRef.current = true;
-    setFading(true);
-    window.setTimeout(onDone, 800);
-  };
+  const blockedRef = useRef(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
 
   useEffect(() => {
-    const audio = ref.current;
+    const audio = audioRef.current;
     if (!audio) return;
-    audio.play().catch(() => setBlocked(true));
+
+    const finish = () => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      setFading(true);
+      window.setTimeout(() => onDoneRef.current(), 800);
+    };
+    audio.addEventListener("ended", finish);
+
     // currentTime updates in coarse steps in some browsers; interpolate with
     // the frame clock so typing advances smoothly instead of in jumps.
     let raf = 0;
     let lastAudio = -1;
     let lastWall = 0;
     let lastShown = -1;
+    const beganAt = performance.now();
     const tick = (now: number) => {
       let time = audio.currentTime;
       if (audio.paused) {
@@ -531,14 +563,23 @@ function Narration({ onDone }: { onDone: () => void }) {
         lastShown = time;
         setT(time);
       }
+      // Safety net: if the voice-over never actually started, offer a retry.
+      const silent = audio.paused && performance.now() - beganAt > 2500;
+      if (silent !== blockedRef.current) {
+        blockedRef.current = silent;
+        setBlocked(silent);
+      }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      audio.removeEventListener("ended", finish);
+    };
   }, []);
 
   const start = () => {
-    ref.current?.play().then(() => setBlocked(false)).catch(() => {});
+    audioRef.current?.play().then(() => setBlocked(false)).catch(() => {});
   };
 
   let phraseIndex = -1;
@@ -559,10 +600,9 @@ function Narration({ onDone }: { onDone: () => void }) {
 
   return (
     <div className={`fixed inset-0 z-[55] flex items-center justify-center bg-black/40 px-6 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>
-      <audio ref={ref} src={narrationAsset.url} preload="auto" onEnded={finish} />
       {blocked ? (
         <button type="button" onClick={start} className="rounded-full border border-white/40 bg-black/40 px-6 py-3 text-lg font-light text-white backdrop-blur transition hover:bg-black/60">
-          Toque para começar ▶
+          Toque para continuar ▶
         </button>
       ) : (
         <p aria-live="polite" className="max-w-4xl text-balance text-center text-3xl font-extralight leading-tight tracking-[-0.02em] text-white sm:text-6xl">
@@ -572,7 +612,7 @@ function Narration({ onDone }: { onDone: () => void }) {
           <span aria-hidden="true" className="opacity-0">{fullText.slice(typed)}</span>
         </p>
       )}
-      <button type="button" onClick={() => { ref.current?.pause(); finish(); }} className="absolute bottom-8 right-6 text-sm font-light text-white/60 transition hover:text-white">
+      <button type="button" onClick={() => { audioRef.current?.pause(); if (!doneRef.current) { doneRef.current = true; setFading(true); window.setTimeout(() => onDoneRef.current(), 800); } }} className="absolute bottom-8 right-6 text-sm font-light text-white/60 transition hover:text-white">
         Pular intro →
       </button>
     </div>
