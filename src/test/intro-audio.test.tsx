@@ -14,7 +14,7 @@ describe("Briefing intro audio", () => {
     vi.restoreAllMocks();
   });
 
-  it("starts the soundtrack and the narration together when Iniciar is clicked", () => {
+  it("starts the soundtrack and the narration together when Iniciar is clicked", async () => {
     const played: HTMLMediaElement[] = [];
     vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (
       this: HTMLMediaElement,
