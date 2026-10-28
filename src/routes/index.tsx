@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import { NARRATION } from "@/lib/narration";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
@@ -40,6 +40,23 @@ export const Route = createFileRoute("/")({
 });
 
 type Q = { id: string; q: string; hint?: string; options?: string[]; long?: boolean; type?: string };
+type Phase = "start" | "narrating" | "logo" | "briefing";
+
+// The soundtrack sits low under the voice-over, then returns to full level.
+const MUSIC_DUCKED = 0.25;
+const MUSIC_FULL = 0.7;
+
+/* Slides an audio element's volume so level changes are never abrupt. */
+function rampVolume(audio: HTMLAudioElement, to: number, seconds: number) {
+  const from = audio.volume;
+  const beganAt = performance.now();
+  const advance = () => {
+    const k = Math.min(1, (performance.now() - beganAt) / (seconds * 1000));
+    audio.volume = from + (to - from) * k;
+    if (k < 1) requestAnimationFrame(advance);
+  };
+  advance();
+}
 
 const QUESTIONS: Q[] = [
   { id: "nome", q: "Qual é o seu **nome**?", hint: "Vamos começar pelo básico." },
@@ -59,7 +76,7 @@ const QUESTIONS: Q[] = [
 
 function Index() {
   const [step, setStep] = useState(-2);
-  const [showIntro, setShowIntro] = useState(true);
+  const [phase, setPhase] = useState<Phase>("start");
   const [introFading, setIntroFading] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -71,50 +88,43 @@ function Index() {
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
   const [musicPlaying, setMusicPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const musicRef = useRef<HTMLAudioElement>(null);
+  const narrationRef = useRef<HTMLAudioElement>(null);
+  const startedRef = useRef(false);
+  const showIntro = phase !== "briefing";
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const startMusic = () => {
-      audio.play()
+  // One tap on "Iniciar" starts both soundtracks together: the looping
+  // background track and the voice-over. Browsers only allow audible playback
+  // from inside a gesture, so both play() calls live in this handler. The track
+  // stays ducked under the narration and comes back up once the voice ends.
+  const beginIntro = () => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    const music = musicRef.current;
+    if (music) {
+      music.volume = MUSIC_DUCKED;
+      music.play()
         .then(() => setMusicPlaying(true))
         .catch(() => setMusicPlaying(false));
-    };
-    const unlockMusic = () => {
-      startMusic();
-      if (!audio.paused) {
-        window.removeEventListener("pointerdown", unlockMusic);
-        window.removeEventListener("keydown", unlockMusic);
-      }
-    };
+    }
+    narrationRef.current?.play().catch(() => {});
+    setPhase("narrating");
+  };
 
-    // Browsers block audible autoplay until a user gesture. Retry on the first
-    // tap or key press so the soundtrack starts without requiring the small
-    // player to be found.
-    startMusic();
-    window.addEventListener("pointerdown", unlockMusic);
-    window.addEventListener("keydown", unlockMusic);
-    return () => {
-      window.removeEventListener("pointerdown", unlockMusic);
-      window.removeEventListener("keydown", unlockMusic);
-    };
-  }, []);
-
-  const [narrating, setNarrating] = useState(true);
   useEffect(() => {
-    if (narrating) return;
+    if (phase !== "logo") return;
     const fadeTimer = window.setTimeout(() => setIntroFading(true), 9000);
     const finishTimer = window.setTimeout(() => {
-      setShowIntro(false);
+      const music = musicRef.current;
+      if (music) rampVolume(music, MUSIC_FULL, 2.5);
+      setPhase("briefing");
       setStep(0);
     }, 10000);
     return () => {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
     };
-  }, [narrating]);
+  }, [phase]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
@@ -155,7 +165,7 @@ function Index() {
   }, []);
 
   const toggleBackgroundMusic = async () => {
-    const audio = audioRef.current;
+    const audio = musicRef.current;
     if (!audio) return;
     if (audio.paused) {
       try {
