@@ -73,7 +73,31 @@ function Index() {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (audio) audio.play().catch(() => setMusicPlaying(false));
+    if (!audio) return;
+
+    const startMusic = () => {
+      audio.play()
+        .then(() => setMusicPlaying(true))
+        .catch(() => setMusicPlaying(false));
+    };
+    const unlockMusic = () => {
+      startMusic();
+      if (!audio.paused) {
+        window.removeEventListener("pointerdown", unlockMusic);
+        window.removeEventListener("keydown", unlockMusic);
+      }
+    };
+
+    // Browsers block audible autoplay until a user gesture. Retry on the first
+    // tap or key press so the soundtrack starts without requiring the small
+    // player to be found.
+    startMusic();
+    window.addEventListener("pointerdown", unlockMusic);
+    window.addEventListener("keydown", unlockMusic);
+    return () => {
+      window.removeEventListener("pointerdown", unlockMusic);
+      window.removeEventListener("keydown", unlockMusic);
+    };
   }, []);
 
   useEffect(() => {
@@ -246,6 +270,17 @@ function Index() {
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ${introFading ? "opacity-0" : "opacity-100"}`}>
           <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 2600ms ease-out both" }} />
         </div>
+      )}
+      {showIntro && !musicPlaying && (
+        <button
+          type="button"
+          onClick={toggleBackgroundMusic}
+          aria-label="Ativar trilha de fundo"
+          className="fixed right-6 top-6 z-[60] inline-flex items-center gap-2 rounded-full border border-white/40 bg-black/35 px-4 py-2.5 text-sm text-white backdrop-blur transition hover:bg-black/55"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
+          Ativar áudio
+        </button>
       )}
 
       <div className="absolute inset-x-0 top-0 z-20 h-1 bg-foreground/10">
