@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ComponentType } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -27,7 +27,9 @@ describe("Briefing intro audio", () => {
 
     expect(played).toHaveLength(0);
 
-    fireEvent.click(screen.getByRole("button", { name: "Iniciar" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Iniciar" }));
+    });
 
     const [soundtrack, narration] = Array.from(document.querySelectorAll("audio"));
     expect(soundtrack).toBeDefined();
