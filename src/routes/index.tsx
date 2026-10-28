@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
-import { InfiniteSlider } from "@/components/ui/infinite-slider";
+import { LogoCarousel } from "@/components/ui/logo-carousel";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -466,26 +466,11 @@ function Index() {
       </section>
 
       <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <InfiniteSlider
-          gap={2}
-          duration={38}
-          reverse
-          className="mx-auto h-24 w-full max-w-[900px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
-        >
-          {PARTNER_LOGOS.map((partner) => (
-            <div
-              key={partner.src}
-              className="flex h-20 w-24 shrink-0 items-center justify-center overflow-hidden sm:h-24 sm:w-28"
-            >
-              <img
-                src={partner.src}
-                alt={partner.name}
-                loading="lazy"
-                className="h-44 w-44 max-w-none shrink-0 object-contain sm:h-52 sm:w-52"
-              />
-            </div>
-          ))}
-        </InfiniteSlider>
+        <LogoCarousel
+          logos={PARTNER_LOGOS}
+          columnCount={8}
+          className="mx-auto w-full max-w-[520px] justify-center [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
+        />
       </footer>
     </main>
   );
