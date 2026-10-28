@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
+import { InfiniteSlider } from "@/components/ui/infinite-slider";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -451,11 +452,18 @@ function Index() {
       </section>
 
       <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <img
-          src="/partners-transparent.png"
-          alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
-          className="mx-auto block max-h-[28px] w-auto max-w-[64vw] object-contain sm:max-h-[36px] sm:max-w-[400px]"
-        />
+        <InfiniteSlider
+          gap={36}
+          duration={30}
+          reverse
+          className="mx-auto h-9 w-full max-w-[420px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
+        >
+          <img
+            src="/partners-transparent.png"
+            alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
+            className="block max-h-[28px] w-auto max-w-[64vw] object-contain sm:max-h-[32px] sm:max-w-[400px]"
+          />
+        </InfiniteSlider>
       </footer>
     </main>
   );
