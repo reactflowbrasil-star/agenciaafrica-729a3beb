@@ -19,28 +19,19 @@ interface LogoCarouselProps {
   className?: string
 }
 
-const shuffleArray = <T,>(array: T[]): T[] => {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
-}
-
 const distributeLogos = (allLogos: readonly Logo[], columnCount: number): Logo[][] => {
   if (allLogos.length === 0 || columnCount < 1) return []
-  const shuffled = shuffleArray([...allLogos])
-  const columns: Logo[][] = Array.from({ length: Math.min(columnCount, shuffled.length) }, () => [])
+  const stableLogos = [...allLogos]
+  const columns: Logo[][] = Array.from({ length: Math.min(columnCount, stableLogos.length) }, () => [])
 
-  shuffled.forEach((logo, index) => {
+  stableLogos.forEach((logo, index) => {
     columns[index % columns.length].push(logo)
   })
 
   const maxLength = Math.max(...columns.map((column) => column.length))
-  columns.forEach((column) => {
+  columns.forEach((column, index) => {
     while (column.length < maxLength) {
-      column.push(shuffled[Math.floor(Math.random() * shuffled.length)])
+      column.push(stableLogos[index % stableLogos.length])
     }
   })
 
@@ -72,7 +63,7 @@ const LogoColumn = React.memo(({ logos, index, currentTime }: LogoColumnProps) =
 })
 
 export function LogoCarousel({ columnCount = 2, logos, className = "" }: LogoCarouselProps) {
-  const [logoSets, setLogoSets] = useState<Logo[][]>([])
+  const logoSets = useMemo(() => distributeLogos(logos, columnCount), [logos, columnCount])
   const [currentTime, setCurrentTime] = useState(0)
 
   const updateTime = useCallback(() => {
@@ -84,9 +75,6 @@ export function LogoCarousel({ columnCount = 2, logos, className = "" }: LogoCar
     return () => window.clearInterval(intervalId)
   }, [updateTime])
 
-  useEffect(() => {
-    setLogoSets(distributeLogos(logos, columnCount))
-  }, [logos, columnCount])
 
   return (
     <div
