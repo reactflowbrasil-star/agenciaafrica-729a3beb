@@ -4,6 +4,7 @@ import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
+import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -478,25 +479,9 @@ function Index() {
                 </>
               ) : (
                 <div className="mt-10">
-                  <div className="relative">
-                    <textarea
-                      ref={inputRef}
-                      rows={1}
-                      value={value}
-                      onChange={(e) => setValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); }
-                      }}
-                      placeholder="Digite sua resposta..."
-                      className="w-full resize-none overflow-hidden border-b-2 border-border bg-transparent pb-3 font-light text-2xl caret-primary outline-none transition-colors placeholder:text-foreground/25 focus:border-primary sm:text-3xl"
-                      style={{ caretColor: "transparent" }}
-                    />
-                    <FakeCaret value={value} />
-                  </div>
+                  <OrbAnswerInput key={cur.id} value={value} onChange={setValue} onSubmit={(t) => submit(t)} inputRef={inputRef} />
                   <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <button onClick={() => submit()} disabled={!value.trim()} className="rounded-full bg-primary px-6 py-3 font-display font-bold text-primary-foreground transition hover:scale-105 disabled:opacity-30 disabled:hover:scale-100">
-                      OK ✓
-                    </button>
+
                     <button
                       type="button"
                       onClick={toggleVoiceInput}
@@ -625,19 +610,6 @@ function Em({ text, progress }: { text: string; progress?: number }) {
         <span className="africa-typewriter-caret" />
       </span>
     </>
-  );
-}
-
-/* Pulsing block caret shown after the typed text (single-line approximation). */
-function FakeCaret({ value }: { value: string }) {
-  const lastLine = value.split("\n").pop() ?? "";
-  const lines = value.split("\n").length;
-  return (
-    <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 whitespace-pre-wrap break-words font-light text-2xl text-transparent sm:text-3xl" style={{ lineHeight: "inherit" }}>
-      {lines > 1 ? value.slice(0, value.length - lastLine.length) : ""}
-      {lastLine}
-      <span className="caret-pulse ml-0.5 inline-block h-[1.1em] w-[3px] translate-y-[0.15em] rounded-full bg-primary" />
-    </div>
   );
 }
 
