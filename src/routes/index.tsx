@@ -541,7 +541,8 @@ function Narration({ onDone }: { onDone: () => void }) {
     ref.current?.play().then(() => setBlocked(false)).catch(() => {});
   };
 
-  const phraseIndex = NARRATION.findLastIndex((p) => (p[0]?.[1] ?? 0) <= t);
+  let phraseIndex = -1;
+  NARRATION.forEach((p, i) => { if ((p[0]?.[1] ?? 0) <= t) phraseIndex = i; });
   const phrase = phraseIndex >= 0 ? NARRATION[phraseIndex]! : null;
   const fullText = phrase ? phrase.map(([w]) => w).join(" ") : "";
   let typed = 0;
