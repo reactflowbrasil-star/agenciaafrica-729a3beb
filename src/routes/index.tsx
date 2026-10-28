@@ -275,7 +275,7 @@ function Index() {
     setIsListening(false);
     const music = musicRef.current;
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
-    audio.src = source;
+    audio.src = source ?? "";
     setNarrationProgress(0);
     audio.currentTime = 0;
     audio.play().catch(() => {
@@ -325,7 +325,7 @@ function Index() {
     setNarrationProgress(0);
     audio.addEventListener("timeupdate", syncTypewriterToAudio);
     audio.onended = onEnded;
-    audio.src = source;
+    audio.src = source ?? "";
     audio.currentTime = 0;
     if (!done) audio.addEventListener("loadedmetadata", syncTypewriterToAudio);
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
