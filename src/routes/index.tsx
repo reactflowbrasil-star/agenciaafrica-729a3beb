@@ -555,7 +555,7 @@ function Index() {
 
       <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <InfiniteSlider
-          gap={40}
+          gap={12}
           duration={32}
           reverse
           className="mx-auto w-full max-w-[980px] [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]"
@@ -566,7 +566,7 @@ function Index() {
               src={partner.src}
               alt={partner.name}
               loading="lazy"
-              className="h-[100px] w-[100px] shrink-0 object-contain opacity-90"
+              className="h-[140px] w-[140px] shrink-0 object-contain opacity-90"
             />
           ))}
         </InfiniteSlider>
@@ -581,9 +581,13 @@ function Em({ text, progress }: { text: string; progress?: number }) {
   const plainText = segments.join("");
   const totalCharacters = Array.from(plainText).length;
   const [localVisibleCharacters, setLocalVisibleCharacters] = useState(0);
+  const clampedProgress = progress === undefined ? 0 : Math.max(0, Math.min(1, progress));
+  // Reveal more of the question early so it keeps pace with spoken words,
+  // while still finishing exactly when the narration ends.
+  const synchronizedProgress = 1 - Math.pow(1 - clampedProgress, 1.6);
   const visibleCharacters = progress === undefined
     ? localVisibleCharacters
-    : Math.floor(totalCharacters * Math.max(0, Math.min(1, progress)));
+    : Math.floor(totalCharacters * synchronizedProgress);
 
   useEffect(() => {
     if (progress !== undefined) return;
