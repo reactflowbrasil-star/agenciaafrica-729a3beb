@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
-import { NARRATION } from "@/lib/narration";
+import { getNarrationFrame } from "@/lib/narration";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -542,8 +542,8 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     };
     audio.addEventListener("ended", finish);
 
-    // currentTime updates in coarse steps in some browsers; interpolate with
-    // the frame clock so typing advances smoothly instead of in jumps.
+    // Audio is the master clock: bound interpolation to avoid accumulating
+    // drift, and freeze text when playback pauses or buffers.
     let raf = 0;
     let lastAudio = -1;
     let lastWall = 0;
@@ -551,16 +551,17 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     const beganAt = performance.now();
     const tick = (now: number) => {
       let time = audio.currentTime;
-      if (audio.paused) {
+      if (audio.paused || audio.readyState < 3) {
         lastAudio = time;
+        lastWall = now;
       } else if (time !== lastAudio) {
         lastAudio = time;
         lastWall = now;
       } else {
-        time = lastAudio + (now - lastWall) / 1000;
+        time = lastAudio + Math.min(0.08, (now - lastWall) / 1000) * audio.playbackRate;
       }
-      // Re-render only when time moves meaningfully (~30fps).
-      if (Math.abs(time - lastShown) > 0.03) {
+      // Final words can be only 30ms apart: update on every animation frame.
+      if (time !== lastShown) {
         lastShown = time;
         setT(time);
       }
@@ -583,21 +584,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     audioRef.current?.play().then(() => setBlocked(false)).catch(() => {});
   };
 
-  let phraseIndex = -1;
-  NARRATION.forEach((p, i) => { if ((p[0]?.[1] ?? 0) <= t) phraseIndex = i; });
-  const phrase = phraseIndex >= 0 ? NARRATION[phraseIndex]! : null;
-  const fullText = phrase ? phrase.map(([w]) => w).join(" ") : "";
-  let typed = 0;
-  if (phrase && !blocked) {
-    const nextPhraseStart = NARRATION[phraseIndex + 1]?.[0]?.[1];
-    phrase.forEach(([word, s], i) => {
-      if (s > t) return;
-      const next = phrase[i + 1]?.[1] ?? nextPhraseStart ?? s + 0.5;
-      const dur = Math.min(Math.max(next - s, 0.12), 0.4);
-      const chars = Math.ceil(word.length * Math.min(1, (t - s) / dur));
-      typed = phrase.slice(0, i).reduce((n, [w]) => n + w.length + 1, 0) + chars;
-    });
-  }
+  const { fullText, typed } = getNarrationFrame(t);
 
   return (
     <div className={`fixed inset-0 z-[55] flex items-center justify-center bg-black/40 px-6 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>

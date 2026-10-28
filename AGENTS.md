@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Keep the background video layer isolated from briefing content and form interaction so text input stays accessible.
+- Derive narration typing from the audio clock with per-word deadlines in the narration module; never impose a minimum typing duration that exceeds a word's time slot.
