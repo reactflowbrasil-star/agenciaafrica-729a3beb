@@ -202,7 +202,7 @@ function Index() {
           const result = event.results[i];
           const transcript = result?.[0]?.transcript?.trim();
           if (!transcript) continue;
-          (result.isFinal ? finalSegments : interimSegments).push(transcript);
+          (result?.isFinal ? finalSegments : interimSegments).push(transcript);
         }
         const spokenText = [...finalSegments, ...interimSegments].join(" ").trim();
         const transcript = [voiceBaseValueRef.current, spokenText].filter(Boolean).join(" ");
