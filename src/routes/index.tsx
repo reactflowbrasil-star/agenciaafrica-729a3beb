@@ -566,7 +566,7 @@ function Index() {
               src={partner.src}
               alt={partner.name}
               loading="lazy"
-              className="h-9 w-auto max-w-[150px] object-contain opacity-90 sm:h-11 sm:max-w-[180px]"
+              className="h-[100px] w-[100px] shrink-0 object-contain opacity-90"
             />
           ))}
         </InfiniteSlider>
