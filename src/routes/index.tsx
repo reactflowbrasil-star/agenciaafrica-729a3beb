@@ -92,6 +92,7 @@ const QUESTIONS: Q[] = [
 ];
 
 const QUESTION_AUDIO_URLS = QUESTIONS.map((_, index) => `/audio/questions/q${String(index + 1).padStart(2, "0")}.mp3`);
+const COMPLETION_AUDIO_URL = "/audio/questions/completion.mp3";
 
 function Index() {
   const [step, setStep] = useState(-2);
@@ -265,17 +266,19 @@ function Index() {
 
   const replayQuestionNarration = () => {
     const audio = questionNarrationRef.current;
-    if (!audio || !cur) return;
+    const source = done ? COMPLETION_AUDIO_URL : cur ? QUESTION_AUDIO_URLS[step] : null;
+    if (!audio || !source) return;
 
     voiceRecognitionRef.current?.stop();
     voiceRecognitionRef.current = null;
     setIsListening(false);
     const music = musicRef.current;
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
+    audio.src = source;
     audio.currentTime = 0;
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
-      if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+      if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
   };
 
@@ -298,27 +301,27 @@ function Index() {
     const audio = questionNarrationRef.current;
     if (!audio) return;
 
-    if (phase !== "briefing" || !cur) {
+    const music = musicRef.current;
+    if (phase !== "briefing" || (!cur && !done)) {
       audio.pause();
       audio.removeAttribute("src");
-      const music = musicRef.current;
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.8);
       return;
     }
 
-    const music = musicRef.current;
+    const source = done ? COMPLETION_AUDIO_URL : QUESTION_AUDIO_URLS[step];
     const onEnded = () => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
-      if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+      if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     };
 
     audio.onended = onEnded;
-    audio.src = QUESTION_AUDIO_URLS[step];
+    audio.src = source;
     audio.currentTime = 0;
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
-      if (voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
+      if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
 
     return () => {
@@ -523,6 +526,16 @@ function Index() {
               <p className="mt-6 max-w-xl font-light text-lg text-muted-foreground">
                 Nosso time vai analisar seu briefing e entrar em contato em breve.
               </p>
+              <button
+                type="button"
+                onClick={replayQuestionNarration}
+                aria-label="Ouvir a mensagem de conclusão novamente"
+                title="Ouvir a mensagem de conclusão novamente"
+                className="mt-6 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/30 px-4 py-3 text-sm text-foreground/80 backdrop-blur transition hover:border-primary hover:text-primary"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zm-2.5-9v2.06a7 7 0 0 1 0 13.88V21a9 9 0 0 0 0-18z" /></svg>
+                Ouvir mensagem novamente
+              </button>
             </div>
           )}
         </div>
