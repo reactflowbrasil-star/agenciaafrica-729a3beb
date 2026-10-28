@@ -9,6 +9,20 @@ const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
 
+const PARTNER_LOGOS = [
+  { src: "/partner-logos/google_ads.png", name: "Google Ads" },
+  { src: "/partner-logos/meta.png", name: "Meta" },
+  { src: "/partner-logos/google_partner.png", name: "Google Partner" },
+  { src: "/partner-logos/youtube.png", name: "YouTube" },
+  { src: "/partner-logos/google_analytics.png", name: "Google Analytics" },
+  { src: "/partner-logos/google_tag_manager.png", name: "Google Tag Manager" },
+  { src: "/partner-logos/google_workspace.png", name: "Google Workspace" },
+  { src: "/partner-logos/looker_studio.png", name: "Looker Studio" },
+  { src: "/partner-logos/tiktok.png", name: "TikTok" },
+  { src: "/partner-logos/rd_station.png", name: "RD Station" },
+  { src: "/partner-logos/hubspot.png", name: "HubSpot" },
+] as const;
+
 type VoiceRecognitionEvent = {
   results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }>;
 };
@@ -453,16 +467,24 @@ function Index() {
 
       <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 py-2 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
         <InfiniteSlider
-          gap={36}
-          duration={30}
+          gap={16}
+          duration={38}
           reverse
           className="mx-auto h-9 w-full max-w-[420px] [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]"
         >
-          <img
-            src="/partners-transparent.png"
-            alt="Google Ads, Meta, Google Partner e selo Google Partner Premier"
-            className="block max-h-[28px] w-auto max-w-[64vw] object-contain sm:max-h-[32px] sm:max-w-[400px]"
-          />
+          {PARTNER_LOGOS.map((partner) => (
+            <div
+              key={partner.src}
+              className="flex h-7 w-11 shrink-0 items-center justify-center overflow-hidden sm:h-8 sm:w-12"
+            >
+              <img
+                src={partner.src}
+                alt={partner.name}
+                loading="lazy"
+                className="h-16 w-16 max-w-none shrink-0 object-contain"
+              />
+            </div>
+          ))}
         </InfiniteSlider>
       </footer>
     </main>
