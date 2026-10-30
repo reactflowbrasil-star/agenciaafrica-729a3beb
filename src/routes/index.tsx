@@ -157,10 +157,18 @@ function Index() {
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
   const done = step >= QUESTIONS.length;
-  const scheduleLandingAfterPause = () => {
-    if (landingTimerRef.current !== null) window.clearTimeout(landingTimerRef.current);
-    landingTimerRef.current = window.setTimeout(() => setLandingVisible(true), 2000);
-  };
+  useEffect(() => {
+    if (!done || phase !== "briefing") return;
+    const timer = window.setTimeout(() => {
+      landingTimerRef.current = null;
+      setLandingVisible(true);
+    }, 2000);
+    landingTimerRef.current = timer;
+    return () => {
+      window.clearTimeout(timer);
+      if (landingTimerRef.current === timer) landingTimerRef.current = null;
+    };
+  }, [done, phase]);
   stepRef.current = step;
   const cur = QUESTIONS[step];
 
@@ -291,7 +299,6 @@ function Index() {
     audio.currentTime = 0;
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
-      if (done) scheduleLandingAfterPause();
       if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
   };
@@ -345,7 +352,6 @@ function Index() {
     const onEnded = () => {
       setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
-      if (done) scheduleLandingAfterPause();
       if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     };
 
