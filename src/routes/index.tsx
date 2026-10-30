@@ -426,7 +426,7 @@ function Index() {
             </Button>
             <Button
               type="button"
-              onClick={() => { setShowIntro(false); setLandingVisible(true); }}
+              onClick={() => { setShowIntro(false); requestAnimationFrame(() => setLandingVisible(true)); }}
               variant="ghost"
               className="h-12 rounded-none border-b border-foreground/35 px-1 font-display text-sm font-light text-foreground/80 hover:bg-transparent hover:text-primary sm:text-base"
             >

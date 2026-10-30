@@ -12,12 +12,12 @@ interface Chapter {
 }
 
 const chapters: Chapter[] = [
-  { id: "01", title: "Nossa essência", subtitle: "Cultura que inspira. Estratégia que transforma.", description: "Ideias frescas e execuções corajosas que conectam cultura e negócios. A AFRICA leva a ginga brasileira para marcas com ambição global." },
-  { id: "02", title: "Tráfego pago", subtitle: "Atenção certa. Resultado mensurável.", description: "Planejamos campanhas de Google e Meta Ads com segmentação, testes e otimização contínua para transformar investimento em oportunidades reais." },
-  { id: "03", title: "Landing pages", subtitle: "Experiências feitas para converter.", description: "Criamos páginas rápidas, responsivas e alinhadas à marca, com mensagens claras e jornadas pensadas para gerar contatos e vendas." },
-  { id: "04", title: "Desenvolvimento digital", subtitle: "Tecnologia que coloca ideias no ar.", description: "Desenvolvemos sites e experiências digitais com foco em desempenho, acessibilidade e navegação simples em qualquer dispositivo." },
-  { id: "05", title: "Estratégia e conteúdo", subtitle: "Marcas relevantes começam com escuta.", description: "Unimos pesquisa, posicionamento e conteúdo para aproximar marcas das pessoas e criar conversas que fazem sentido." },
-  { id: "06", title: "Criatividade com performance", subtitle: "Vamos construir sua próxima grande ideia?", description: "Conte para a AFRICA o que sua marca quer transformar. Nosso time está pronto para começar essa conversa." },
+  { id: "01", title: "Nossa essência", subtitle: "CRIATIVIDADE QUE MOVE NEGÓCIOS.", description: "A AFRICA conecta cultura, tecnologia e estratégia para transformar ideias ousadas em crescimento real para marcas." },
+  { id: "02", title: "Tráfego pago", subtitle: "NÃO COMPRAMOS CLIQUES. CRIAMOS OPORTUNIDADES.", description: "Meta Ads, Google Ads e aquisição orientada por dados: campanhas de performance que atraem clientes e impulsionam negócios." },
+  { id: "03", title: "Landing pages & desenvolvimento", subtitle: "EXPERIÊNCIAS DIGITAIS QUE CONVERTEM.", description: "Landing pages e produtos web com UX/UI, alta performance e otimização contínua para transformar visitas em conversões." },
+  { id: "04", title: "Branding & design", subtitle: "MARCAS FORTES NÃO PASSAM DESPERCEBIDAS.", description: "Identidade visual, posicionamento e direção de arte para construir marcas memoráveis, consistentes e cheias de personalidade." },
+  { id: "05", title: "Tecnologia & automação", subtitle: "O FUTURO NÃO ESPERA.", description: "Inteligência artificial, automações e integrações que simplificam processos e aplicam inovação ao dia a dia dos negócios." },
+  { id: "06", title: "Resultados & conversão", subtitle: "SUA PRÓXIMA GRANDE IDEIA COMEÇA AQUI.", description: "Vamos conectar estratégia, criatividade e resultado para levar sua marca ao próximo nível." },
 ];
 
 const heroStyles = [
@@ -25,13 +25,14 @@ const heroStyles = [
   "@keyframes africa-hero-title { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }",
   "@keyframes africa-nav-enter { from { opacity: 0; transform: translate(-50%, 100px); } to { opacity: 1; transform: translate(-50%, 0); } }",
   "@keyframes africa-nav-title { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }",
-  "@keyframes africa-whatsapp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,.45); } 50% { box-shadow: 0 0 0 12px rgba(37,211,102,0); } }",
-  ".africa-whatsapp-float { animation: africa-whatsapp-pulse 2s ease-out infinite; }",
+  "@keyframes africa-whatsapp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,.35); } 50% { box-shadow: 0 0 0 8px rgba(37,211,102,0); } }",
+  ".africa-whatsapp-float { animation: africa-whatsapp-pulse 2.8s ease-out infinite; }",
   ".africa-copy-fade { opacity: 0; animation: africa-hero-fade 800ms ease-out 400ms both; }",
   ".africa-delay-500 { animation-delay: 500ms; } .africa-delay-600 { animation-delay: 600ms; } .africa-delay-700 { animation-delay: 700ms; }",
   ".africa-title-reveal { display: block; opacity: 0; animation: africa-hero-title 800ms cubic-bezier(.16,1,.3,1) 500ms both; }",
   ".africa-nav-enter { animation: africa-nav-enter 600ms ease-out 500ms both; }",
   ".africa-nav-title { animation: africa-nav-title 300ms ease-out both; }",
+  "@media (prefers-reduced-motion: reduce) { .africa-whatsapp-float { animation: none; } }",
   "@media (prefers-reduced-motion: reduce) { .africa-copy-fade, .africa-title-reveal, .africa-nav-enter, .africa-nav-title { opacity: 1; animation: none; } }",
 ].join("\n");
 
@@ -75,7 +76,7 @@ export default function CinematicScrol({
   const activeIndexRef = useRef(0);
   const [visibleVideoIndex, setVisibleVideoIndex] = useState(0);
   const visibleVideoIndexRef = useRef(0);
-  const [videoTransition, setVideoTransition] = useState<{ from: number; to: number } | null>(null);
+  const [videoTransition, setVideoTransition] = useState<{ from: number; to: number; progress: number } | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
@@ -199,14 +200,14 @@ export default function CinematicScrol({
   return (
     <section
       ref={containerRef}
-      className="africa-scroll-story relative h-[700vh] w-full max-w-full overflow-x-clip supports-[height:100svh]:h-[700svh]"
+      className="africa-scroll-story relative h-[600vh] w-full max-w-full overflow-x-clip supports-[height:100svh]:h-[600svh]"
     >
       <style>{heroStyles}</style>
       <div className="sticky top-0 h-screen w-full max-w-full overflow-hidden supports-[height:100svh]:h-svh">
         <div className="absolute inset-0 isolate overflow-hidden bg-black">
           {sceneVideoUrls.map((src, index) => {
             const opacity = videoTransition
-              ? index === videoTransition.to ? 1 : 0
+              ? index === videoTransition.to ? videoTransition.progress : index === videoTransition.from ? 1 - videoTransition.progress : 0
               : index === visibleVideoIndex ? 1 : 0;
 
             return (
@@ -245,7 +246,7 @@ export default function CinematicScrol({
         <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-5 py-5 sm:px-8 sm:py-7 lg:px-14">
           <img src={logoUrl} alt="AFRICA" className="h-auto w-[min(38vw,180px)] object-contain sm:w-[190px]" />
           <a
-            href="https://wa.me/558391907010"
+            href="https://wa.me/558391907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
             target="_blank"
             rel="noreferrer"
             className="rounded-full border border-white/40 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-md transition hover:border-white hover:bg-white/10 sm:px-5 sm:text-sm"
@@ -266,7 +267,7 @@ export default function CinematicScrol({
                   active ? "opacity-100" : "pointer-events-none opacity-0",
                 )}
               >
-                <div key={item.id + "-" + activeIndex} className="pointer-events-auto w-full min-w-0 max-w-4xl break-words">
+                <div key={item.id + "-" + activeIndex} className="pointer-events-auto w-full min-w-0 max-w-4xl [overflow-wrap:anywhere]">
                   <div className="africa-copy-fade mb-5 flex items-center gap-3 sm:mb-7 sm:gap-4">
                     <div className="h-0.5 w-8 bg-primary sm:w-12" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary sm:text-xs sm:tracking-[0.3em]">
@@ -310,7 +311,7 @@ export default function CinematicScrol({
           })}
         </div>
 
-        <a href="https://wa.me/558391907010" target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-5 right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
+        <a href="https://wa.me/558391907010" target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
           <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current sm:h-8 sm:w-8" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.08 0C5.5 0 .15 5.34.15 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.28-1.65a11.9 11.9 0 0 0 5.79 1.47h.01C18.66 23.82 24 18.48 24 11.9c0-3.18-1.24-6.17-3.48-8.42ZM12.08 21.8a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.73.98 1-3.64-.23-.37a9.85 9.85 0 0 1-1.52-5.26c0-5.46 4.45-9.9 9.9-9.9a9.83 9.83 0 0 1 7 2.9 9.84 9.84 0 0 1 2.9 7c0 5.45-4.44 9.88-9.91 9.88Zm5.43-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.93 1.17-.17.2-.34.22-.64.07-.3-.15-1.26-.46-2.4-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.34.44-.5.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.66-.51h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.27.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.42-.08-.12-.27-.2-.57-.35Z"/></svg>
         </a>
         <div className="africa-nav-enter fixed bottom-4 left-1/2 z-50 flex max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/80 py-2 pl-4 pr-2 shadow-2xl backdrop-blur-xl sm:bottom-7 sm:gap-4 sm:pl-6">
