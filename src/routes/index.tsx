@@ -675,6 +675,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     const finish = () => {
       if (doneRef.current) return;
       doneRef.current = true;
+      setT(Number.MAX_SAFE_INTEGER);
       setFading(true);
       window.setTimeout(() => onDoneRef.current(), 800);
     };
@@ -685,7 +686,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     let raf = 0;
     let lastAudio = -1;
     let lastWall = 0;
-    let lastShown = -1;
+    let lastFrameKey = "";
     const beganAt = performance.now();
     const tick = (now: number) => {
       let time = audio.currentTime;
@@ -699,8 +700,10 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
         time = lastAudio + Math.min(0.08, (now - lastWall) / 1000) * audio.playbackRate;
       }
       // Final words can be only 30ms apart: update on every animation frame.
-      if (time !== lastShown) {
-        lastShown = time;
+      const frame = getNarrationFrame(time);
+      const frameKey = frame.fullText + "::" + frame.typed;
+      if (frameKey !== lastFrameKey) {
+        lastFrameKey = frameKey;
         setT(time);
       }
       // Safety net: if the voice-over never actually started, offer a retry.
