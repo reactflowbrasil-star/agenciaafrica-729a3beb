@@ -435,7 +435,7 @@ function Index() {
               variant="ghost"
               className="h-12 rounded-none border-b border-foreground/35 px-1 font-display text-sm font-light text-foreground/80 hover:bg-transparent hover:text-primary sm:text-base"
             >
-              Pular briefing <span className="text-foreground/55">(ir para o site)</span>
+              Pular briefing <span aria-hidden="true" className="px-1 text-foreground/55">→</span><span className="text-foreground/55">ir para o site</span>
             </Button>
           </div>
         </div>
