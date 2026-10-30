@@ -250,6 +250,7 @@ function Index() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
+  const voiceTranscriptRef = useRef("");
   const done = step >= QUESTIONS.length;
   useEffect(() => {
     if (!done || phase !== "briefing") return;
@@ -268,6 +269,7 @@ function Index() {
 
   const go = (next: number) => {
     changingStepRef.current = true;
+    voiceModeRef.current = false;
     voiceRecognitionRef.current?.stop();
     setLeaving(true);
     setTimeout(() => {
@@ -281,6 +283,7 @@ function Index() {
 
   const submit = (v = value) => {
     if (!cur || !v.trim()) return;
+    voiceModeRef.current = false;
     voiceRecognitionRef.current?.stop();
     setAnswers((a) => ({ ...a, [cur.id]: v.trim() }));
     go(step + 1);
@@ -310,22 +313,26 @@ function Index() {
     }
   };
 
-  const stopVoiceMode = () => {
+  const stopVoiceRecognition = () => {
     voiceModeRef.current = false;
     setVoiceMode(false);
-    voiceRecognitionRef.current?.stop();
-    voiceRecognitionRef.current = null;
-    setIsListening(false);
-    setVoiceStatus("Modo de voz desligado.");
+    const recognition = voiceRecognitionRef.current;
+    if (recognition) {
+      setVoiceStatus("Finalizando sua resposta…");
+      recognition.stop();
+    } else {
+      setIsListening(false);
+    }
   };
 
   const startVoiceRecognition = () => {
+    if (voiceRecognitionRef.current || changingStepRef.current) return;
     const browserWindow = window as WindowWithVoiceRecognition;
     const Recognition = browserWindow.SpeechRecognition ?? browserWindow.webkitSpeechRecognition;
     if (!Recognition) {
       voiceModeRef.current = false;
       setVoiceMode(false);
-      setVoiceStatus("Este navegador não oferece ditado ao vivo. Digite sua resposta ou use o Chrome.");
+      setVoiceStatus("Este navegador não oferece ditado ao vivo. Use o Chrome ou digite sua resposta.");
       return;
     }
 
@@ -334,45 +341,57 @@ function Index() {
       recognition.lang = "pt-BR";
       recognition.continuous = true;
       recognition.interimResults = true;
-      voiceBaseValueRef.current = value.trim();
+      const question = QUESTIONS[stepRef.current];
+      voiceBaseValueRef.current = question?.options ? "" : value.trim();
+      voiceTranscriptRef.current = "";
       recognition.onresult = (event) => {
-        const finalSegments: string[] = [];
-        const interimSegments: string[] = [];
+        const segments: string[] = [];
         for (let i = 0; i < event.results.length; i++) {
-          const result = event.results[i];
-          const transcript = result?.[0]?.transcript?.trim();
-          if (!transcript) continue;
-          (result?.isFinal ? finalSegments : interimSegments).push(transcript);
+          const transcript = event.results[i]?.[0]?.transcript?.trim();
+          if (transcript) segments.push(transcript);
         }
-        const spokenText = [...finalSegments, ...interimSegments].join(" ").trim();
-        const transcript = [voiceBaseValueRef.current, spokenText].filter(Boolean).join(" ");
-        setValue(transcript);
-        const question = QUESTIONS[stepRef.current];
-        if (question?.options && transcript.trim()) {
-          setAnswers((a) => ({ ...a, [question.id]: transcript.trim() }));
-        }
+        voiceTranscriptRef.current = segments.join(" ").trim();
+        if (voiceTranscriptRef.current) setVoiceStatus("Solte para preencher a resposta.");
       };
       recognition.onerror = () => {
+        voiceModeRef.current = false;
+        setVoiceMode(false);
         setIsListening(false);
-        setVoiceStatus("Não foi possível reconhecer a fala. Tente novamente ou digite sua resposta.");
+        setVoiceStatus("Não foi possível reconhecer a fala. Segure para tentar novamente.");
       };
       recognition.onend = () => {
         voiceRecognitionRef.current = null;
         setIsListening(false);
-        if (voiceModeRef.current && !changingStepRef.current && stepRef.current < QUESTIONS.length && questionNarrationRef.current?.paused !== false) {
-          window.setTimeout(() => {
-            if (voiceModeRef.current && !voiceRecognitionRef.current && questionNarrationRef.current?.paused !== false) startVoiceRecognition();
-          }, 250);
-        } else {
-          setVoiceStatus("");
+        voiceModeRef.current = false;
+        setVoiceMode(false);
+
+        const transcript = [voiceBaseValueRef.current, voiceTranscriptRef.current]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        const activeQuestion = QUESTIONS[stepRef.current];
+        if (transcript && activeQuestion) {
+          if (activeQuestion.options) {
+            setAnswers((answers) => ({ ...answers, [activeQuestion.id]: transcript }));
+          } else {
+            setValue(transcript);
+          }
+          setVoiceStatus("Resposta preenchida. Revise antes de continuar.");
+        } else if (!changingStepRef.current) {
+          setVoiceStatus("Nenhuma fala reconhecida. Segure para tentar novamente.");
         }
       };
+
       voiceRecognitionRef.current = recognition;
       recognition.start();
+      voiceModeRef.current = true;
+      setVoiceMode(true);
       setIsListening(true);
-      setVoiceStatus("Ouvindo…");
+      setVoiceStatus("Ouvindo… solte para preencher a resposta.");
     } catch {
       voiceRecognitionRef.current = null;
+      voiceModeRef.current = false;
+      setVoiceMode(false);
       setIsListening(false);
       setVoiceStatus("Não foi possível iniciar o microfone. Confira a permissão do navegador.");
     }
@@ -383,6 +402,8 @@ function Index() {
     const source = done ? COMPLETION_AUDIO_URL : cur ? QUESTION_AUDIO_URLS[step] : null;
     if (!audio || !source) return;
 
+    voiceModeRef.current = false;
+    setVoiceMode(false);
     voiceRecognitionRef.current?.stop();
     voiceRecognitionRef.current = null;
     setIsListening(false);
@@ -393,24 +414,9 @@ function Index() {
     audio.currentTime = 0;
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
-      if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
   };
 
-  const toggleVoiceInput = () => {
-    if (voiceModeRef.current) {
-      stopVoiceMode();
-      return;
-    }
-    voiceModeRef.current = true;
-    setVoiceMode(true);
-    if (questionNarrationRef.current && !questionNarrationRef.current.paused) {
-      setVoiceStatus("A narração está tocando. O microfone será ativado ao terminar.");
-      return;
-    }
-    setVoiceStatus("Modo de voz ativo. Fale suas respostas; toque em Desligar voz para encerrar.");
-    startVoiceRecognition();
-  };
 
   useEffect(() => {
     const audio = questionNarrationRef.current;
@@ -446,7 +452,6 @@ function Index() {
     const onEnded = () => {
       setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
-      if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     };
 
     setNarrationProgress(0);
@@ -463,7 +468,6 @@ function Index() {
     audio.play().catch(() => {
       setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
-      if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
     raf = window.requestAnimationFrame(tick);
 
@@ -612,11 +616,11 @@ function Index() {
                     </button>
                   ))}
                 </div>
-                <div className="mt-6 flex items-center gap-3">
-                  <button type="button" onClick={toggleVoiceInput} aria-label={voiceMode ? "Desligar modo de voz" : "Responder por voz"} title={voiceMode ? "Desligar modo de voz" : "Responder por voz"} className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 font-display text-sm transition ${voiceMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}>
-                    <span aria-hidden="true">🎙</span><span>{voiceMode ? "Desligar voz" : "Responder por voz"}</span>
+                <div className="mt-6 flex flex-wrap items-center gap-3">
+                  <button type="button" onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); startVoiceRecognition(); }} onPointerUp={stopVoiceRecognition} onPointerCancel={stopVoiceRecognition} onKeyDown={(event) => { if ((event.key === " " || event.key === "Enter") && !event.repeat) { event.preventDefault(); startVoiceRecognition(); } }} onKeyUp={(event) => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); stopVoiceRecognition(); } }} aria-label={isListening ? "Ouvindo, solte para preencher" : "Segure para falar"} title={isListening ? "Ouvindo, solte para preencher" : "Segure para falar"} className={`inline-flex items-center gap-2 touch-none select-none rounded-full border px-4 py-3 font-display text-sm transition ${voiceMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}>
+                    <span aria-hidden="true">🎙</span><span>{isListening ? "Ouvindo… solte para preencher" : "Segure para falar"}</span>
                   </button>
-                  <span className="font-light text-sm text-muted-foreground" aria-live="polite">{answers[cur.id] || "Escolha uma opção ou fale sua resposta."}</span>
+                  <span className="font-light text-sm text-muted-foreground" aria-live="polite">{answers[cur.id] || "Escolha uma opção ou segure para falar."}</span>
                 </div>
                 </>
               ) : (
@@ -626,24 +630,24 @@ function Index() {
 
                     <button
                       type="button"
-                      onClick={toggleVoiceInput}
-                      aria-label={voiceMode ? "Desligar modo de voz" : "Responder por voz"}
-                      title={voiceMode ? "Desligar modo de voz" : "Responder por voz"}
-                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-3 font-display text-sm transition ${voiceMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
+                      onPointerDown={(event) => { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); startVoiceRecognition(); }} onPointerUp={stopVoiceRecognition} onPointerCancel={stopVoiceRecognition} onKeyDown={(event) => { if ((event.key === " " || event.key === "Enter") && !event.repeat) { event.preventDefault(); startVoiceRecognition(); } }} onKeyUp={(event) => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); stopVoiceRecognition(); } }}
+                      aria-label={isListening ? "Ouvindo, solte para preencher" : "Segure para falar"}
+                      title={isListening ? "Ouvindo, solte para preencher" : "Segure para falar"}
+                      className={`inline-flex items-center gap-2 touch-none select-none rounded-full border px-4 py-3 font-display text-sm transition ${voiceMode ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground hover:border-primary hover:text-primary"}`}
                     >
                       {voiceMode ? (
                         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M7 7h10v10H7z" /></svg>
                       ) : (
                         <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a1 1 0 1 0-2 0 3 3 0 0 1-6 0 1 1 0 1 0-2 0 5 5 0 0 0 4 4.9V19H8a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2h-3v-3.1a5 5 0 0 0 4-4.9Z" /></svg>
                       )}
-                      <span>{voiceMode ? "Desligar voz" : "Responder por voz"}</span>
+                      <span>{isListening ? "Ouvindo… solte para preencher" : "Segure para falar"}</span>
                     </button>
                     <span className="hidden font-light text-sm text-muted-foreground sm:inline">
                       Enter ↵ {cur.long && "· Shift+Enter nova linha"}
                     </span>
                   </div>
                   <p className="mt-3 min-h-5 font-light text-xs text-muted-foreground" aria-live="polite">
-                    {voiceStatus || (voiceMode ? "Modo de voz ligado: permanece ativo em todas as perguntas." : "A fala é transcrita para texto e usada como resposta. Revise antes de enviar.")}
+                    {voiceStatus || (voiceMode ? "Segure o botão para falar; ao soltar, a resposta será preenchida." : "Segure o botão para falar e solte para preencher a resposta.")}
                   </p>
                 </div>
               )}
