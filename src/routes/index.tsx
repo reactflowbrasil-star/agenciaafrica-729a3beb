@@ -1,14 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
+import lionForestAsset from "@/assets/lion-forest-01.mp4.asset.json";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { LogoMarquee } from "@/components/ui/logo-marquee";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
+import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
+const lionForestUrl = new URL(lionForestAsset.url, "https://agenciaafrica.lovable.app").toString();
 
 const PARTNER_LOGOS = [
   { src: "/partner-logos/google_ads.png", name: "Google Ads" },
@@ -109,6 +112,8 @@ function Index() {
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
   const [narrationProgress, setNarrationProgress] = useState(0);
+  const [landingVisible, setLandingVisible] = useState(false);
+  const landingTimerRef = useRef<number | null>(null);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const musicRef = useRef<HTMLAudioElement>(null);
   const narrationRef = useRef<HTMLAudioElement>(null);
@@ -152,6 +157,10 @@ function Index() {
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
   const done = step >= QUESTIONS.length;
+  const scheduleLandingAfterPause = () => {
+    if (landingTimerRef.current !== null) window.clearTimeout(landingTimerRef.current);
+    landingTimerRef.current = window.setTimeout(() => setLandingVisible(true), 2000);
+  };
   stepRef.current = step;
   const cur = QUESTIONS[step];
 
@@ -179,6 +188,7 @@ function Index() {
     return () => {
       voiceModeRef.current = false;
       voiceRecognitionRef.current?.stop();
+      if (landingTimerRef.current !== null) window.clearTimeout(landingTimerRef.current);
     };
   }, []);
 
@@ -281,6 +291,7 @@ function Index() {
     audio.currentTime = 0;
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
+      if (done) scheduleLandingAfterPause();
       if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     });
   };
@@ -334,6 +345,7 @@ function Index() {
     const onEnded = () => {
       setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
+      if (done) scheduleLandingAfterPause();
       if (!done && voiceModeRef.current && !voiceRecognitionRef.current) startVoiceRecognition();
     };
 
@@ -378,7 +390,7 @@ function Index() {
   const progress = done ? 100 : Math.max(0, (step / QUESTIONS.length) * 100);
 
   return (
-    <main className="relative min-h-dvh w-full overflow-hidden bg-background font-sans text-foreground">
+    <main className={`relative min-h-dvh w-full bg-background font-sans text-foreground ${landingVisible ? "overflow-visible" : "overflow-hidden"}`}>
       <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } .africa-typewriter-caret { animation: none; } }`}</style>
       <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
       <audio ref={musicRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
@@ -564,7 +576,14 @@ function Index() {
           className="mx-auto w-full max-w-[760px]"
         />
       </footer>
-    </main>
+          <div
+        data-landing-scroll
+        aria-hidden={!landingVisible}
+        className={`fixed inset-0 z-[80] overflow-y-auto bg-black transition-opacity duration-1000 ease-out ${landingVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      >
+        {landingVisible && <CinematicScrol videoUrl={lionForestUrl} logoUrl={logo} />}
+      </div>
+</main>
   );
 }
 
