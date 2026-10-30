@@ -12,24 +12,12 @@ interface Chapter {
 }
 
 const chapters: Chapter[] = [
-  {
-    id: "01",
-    title: "Nossa essência",
-    subtitle: "Cultura que inspira. Estratégia que transforma.",
-    description: "Ideias frescas e execuções corajosas que conectam cultura e negócios. A AFRICA leva a ginga brasileira para marcas com ambição global.",
-  },
-  {
-    id: "02",
-    title: "Criatividade com performance",
-    subtitle: "Cada ideia precisa mover algo.",
-    description: "Unimos branding, design e mídia de performance para criar experiências que aproximam marcas das pessoas e geram resultados de verdade.",
-  },
-  {
-    id: "03",
-    title: "Creative como sobrenome",
-    subtitle: "Vamos construir sua próxima grande ideia?",
-    description: "Conte para a AFRICA o que sua marca quer transformar. Nosso time está pronto para começar essa conversa.",
-  },
+  { id: "01", title: "Nossa essência", subtitle: "Cultura que inspira. Estratégia que transforma.", description: "Ideias frescas e execuções corajosas que conectam cultura e negócios. A AFRICA leva a ginga brasileira para marcas com ambição global." },
+  { id: "02", title: "Tráfego pago", subtitle: "Atenção certa. Resultado mensurável.", description: "Planejamos campanhas de Google e Meta Ads com segmentação, testes e otimização contínua para transformar investimento em oportunidades reais." },
+  { id: "03", title: "Landing pages", subtitle: "Experiências feitas para converter.", description: "Criamos páginas rápidas, responsivas e alinhadas à marca, com mensagens claras e jornadas pensadas para gerar contatos e vendas." },
+  { id: "04", title: "Desenvolvimento digital", subtitle: "Tecnologia que coloca ideias no ar.", description: "Desenvolvemos sites e experiências digitais com foco em desempenho, acessibilidade e navegação simples em qualquer dispositivo." },
+  { id: "05", title: "Estratégia e conteúdo", subtitle: "Marcas relevantes começam com escuta.", description: "Unimos pesquisa, posicionamento e conteúdo para aproximar marcas das pessoas e criar conversas que fazem sentido." },
+  { id: "06", title: "Criatividade com performance", subtitle: "Vamos construir sua próxima grande ideia?", description: "Conte para a AFRICA o que sua marca quer transformar. Nosso time está pronto para começar essa conversa." },
 ];
 
 const heroStyles = [
@@ -37,6 +25,8 @@ const heroStyles = [
   "@keyframes africa-hero-title { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }",
   "@keyframes africa-nav-enter { from { opacity: 0; transform: translate(-50%, 100px); } to { opacity: 1; transform: translate(-50%, 0); } }",
   "@keyframes africa-nav-title { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }",
+  "@keyframes africa-whatsapp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,.45); } 50% { box-shadow: 0 0 0 12px rgba(37,211,102,0); } }",
+  ".africa-whatsapp-float { animation: africa-whatsapp-pulse 2s ease-out infinite; }",
   ".africa-copy-fade { opacity: 0; animation: africa-hero-fade 800ms ease-out 400ms both; }",
   ".africa-delay-500 { animation-delay: 500ms; } .africa-delay-600 { animation-delay: 600ms; } .africa-delay-700 { animation-delay: 700ms; }",
   ".africa-title-reveal { display: block; opacity: 0; animation: africa-hero-title 800ms cubic-bezier(.16,1,.3,1) 500ms both; }",
@@ -62,6 +52,9 @@ const DEFAULT_VIDEO_URLS = [
   "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4",
   "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4",
   "https://videos.pexels.com/video-files/37515895/15894471_2560_1440_30fps.mp4",
+  "https://videos.pexels.com/video-files/11528208/11528208-uhd_1440_2562_30fps.mp4",
+  "https://videos.pexels.com/video-files/35884354/15219737_1440_2560_30fps.mp4",
+  "https://videos.pexels.com/video-files/34449306/14597376_1440_2560_30fps.mp4",
 ] as const;
 const DEFAULT_LOGO_URL = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 
@@ -197,7 +190,7 @@ export default function CinematicScrol({
     const travel = Math.max(0, section.offsetHeight - scrollHost.clientHeight);
     const hostTop = scrollHost === document.scrollingElement ? 0 : scrollHost.getBoundingClientRect().top;
     const sectionScrollTop = section.getBoundingClientRect().top - hostTop + scrollHost.scrollTop;
-    const destination = sectionScrollTop + travel * index / (chapters.length - 1);
+    const destination = sectionScrollTop + travel * index / chapters.length;
     scrollHost.scrollTo({ top: destination, behavior: "smooth" });
   };
 
@@ -206,10 +199,10 @@ export default function CinematicScrol({
   return (
     <section
       ref={containerRef}
-      className="africa-scroll-story relative h-[300vh] w-full supports-[height:100svh]:h-[300svh]"
+      className="africa-scroll-story relative h-[700vh] w-full max-w-full overflow-x-clip supports-[height:100svh]:h-[700svh]"
     >
       <style>{heroStyles}</style>
-      <div className="sticky top-0 h-screen w-full overflow-hidden supports-[height:100svh]:h-svh">
+      <div className="sticky top-0 h-screen w-full max-w-full overflow-hidden supports-[height:100svh]:h-svh">
         <div className="absolute inset-0 isolate overflow-hidden bg-black">
           {sceneVideoUrls.map((src, index) => {
             const opacity = videoTransition
@@ -252,7 +245,7 @@ export default function CinematicScrol({
         <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-5 py-5 sm:px-8 sm:py-7 lg:px-14">
           <img src={logoUrl} alt="AFRICA" className="h-auto w-[min(38vw,180px)] object-contain sm:w-[190px]" />
           <a
-            href="https://wa.me/558398907010"
+            href="https://wa.me/558391907010"
             target="_blank"
             rel="noreferrer"
             className="rounded-full border border-white/40 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-md transition hover:border-white hover:bg-white/10 sm:px-5 sm:text-sm"
@@ -273,7 +266,7 @@ export default function CinematicScrol({
                   active ? "opacity-100" : "pointer-events-none opacity-0",
                 )}
               >
-                <div key={item.id + "-" + activeIndex} className="pointer-events-auto w-full max-w-4xl">
+                <div key={item.id + "-" + activeIndex} className="pointer-events-auto w-full min-w-0 max-w-4xl break-words">
                   <div className="africa-copy-fade mb-5 flex items-center gap-3 sm:mb-7 sm:gap-4">
                     <div className="h-0.5 w-8 bg-primary sm:w-12" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary sm:text-xs sm:tracking-[0.3em]">
@@ -281,7 +274,7 @@ export default function CinematicScrol({
                     </span>
                   </div>
                   <div className="mb-6 overflow-hidden py-2">
-                    <h1 className="africa-title-reveal max-w-4xl text-balance text-4xl font-black leading-[1.02] tracking-[-0.045em] text-white sm:text-6xl md:text-7xl lg:text-8xl">
+                    <h1 className="africa-title-reveal max-w-4xl text-balance text-[clamp(2rem,9vw,4.5rem)] font-black leading-[1.02] tracking-[-0.045em] break-words text-white sm:text-6xl md:text-7xl lg:text-8xl">
                       {item.subtitle}
                     </h1>
                   </div>
@@ -292,7 +285,7 @@ export default function CinematicScrol({
                   </div>
                   {index === chapters.length - 1 ? (
                     <a
-                      href="https://wa.me/558398907010"
+                      href="https://wa.me/558391907010"
                       target="_blank"
                       rel="noreferrer"
                       className="africa-copy-fade africa-delay-700 mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:scale-105 hover:translate-x-2.5 active:scale-95 sm:mt-9 sm:px-8 sm:text-base"
@@ -317,6 +310,9 @@ export default function CinematicScrol({
           })}
         </div>
 
+        <a href="https://wa.me/558391907010" target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-5 right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
+          <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current sm:h-8 sm:w-8" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.08 0C5.5 0 .15 5.34.15 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.28-1.65a11.9 11.9 0 0 0 5.79 1.47h.01C18.66 23.82 24 18.48 24 11.9c0-3.18-1.24-6.17-3.48-8.42ZM12.08 21.8a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.73.98 1-3.64-.23-.37a9.85 9.85 0 0 1-1.52-5.26c0-5.46 4.45-9.9 9.9-9.9a9.83 9.83 0 0 1 7 2.9 9.84 9.84 0 0 1 2.9 7c0 5.45-4.44 9.88-9.91 9.88Zm5.43-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.93 1.17-.17.2-.34.22-.64.07-.3-.15-1.26-.46-2.4-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.34.44-.5.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.66-.51h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.27.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.42-.08-.12-.27-.2-.57-.35Z"/></svg>
+        </a>
         <div className="africa-nav-enter fixed bottom-4 left-1/2 z-50 flex max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/80 py-2 pl-4 pr-2 shadow-2xl backdrop-blur-xl sm:bottom-7 sm:gap-4 sm:pl-6">
           <div className="min-w-0">
             <span className="block text-[9px] uppercase tracking-[0.2em] text-white/50 sm:text-[10px] sm:tracking-widest">

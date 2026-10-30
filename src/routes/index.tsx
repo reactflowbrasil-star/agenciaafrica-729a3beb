@@ -412,17 +412,27 @@ function Index() {
         </div>
       )}
       {phase === "start" && (
-        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-12 bg-background/65 px-6 text-center sm:gap-16">
-          <img src={logo} alt="AFRICA" className="h-auto w-[min(58vw,320px)] object-contain" />
-          <Button
-            type="button"
-            onClick={beginIntro}
-            variant="ghost"
-            className="h-12 gap-4 rounded-none border-b border-foreground/35 px-1 font-display text-base font-light text-foreground hover:bg-transparent hover:text-primary"
-          >
-            Iniciar
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
-          </Button>
+        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center sm:gap-10">
+          <img src={logo} alt="AFRICA" className="h-auto w-[min(70vw,360px)] object-contain" />
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            <Button
+              type="button"
+              onClick={beginIntro}
+              variant="ghost"
+              className="h-12 gap-3 rounded-none border-b border-foreground/35 px-1 font-display text-base font-light text-foreground hover:bg-transparent hover:text-primary"
+            >
+              Iniciar
+              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M8 5v14l11-7z" /></svg>
+            </Button>
+            <Button
+              type="button"
+              onClick={() => { setShowIntro(false); setLandingVisible(true); }}
+              variant="ghost"
+              className="h-12 rounded-none border-b border-foreground/35 px-1 font-display text-sm font-light text-foreground/80 hover:bg-transparent hover:text-primary sm:text-base"
+            >
+              Pular briefing <span className="text-foreground/55">(ir para o site)</span>
+            </Button>
+          </div>
         </div>
       )}
       {phase !== "start" && showIntro && !musicPlaying && (
