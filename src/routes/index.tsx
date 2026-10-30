@@ -12,6 +12,7 @@ const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
 const lionForestUrl = new URL(lionForestAsset.url, "https://agenciaafrica.lovable.app").toString();
+const heroVideoUrls = [lionForestUrl, "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4", "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4"] as const;
 
 const PARTNER_LOGOS = [
   { src: "/partner-logos/google_ads.png", name: "Google Ads" },
@@ -599,7 +600,7 @@ function Index() {
         aria-hidden={!landingVisible}
         className={`fixed inset-0 z-[80] overflow-y-auto bg-black transition-opacity duration-1000 ease-out ${landingVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
       >
-        {landingVisible && <CinematicScrol videoUrl={lionForestUrl} logoUrl={logo} />}
+        {landingVisible && <CinematicScrol videoUrls={heroVideoUrls} logoUrl={logo} />}
       </div>
 </main>
   );

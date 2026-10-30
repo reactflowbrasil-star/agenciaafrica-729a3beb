@@ -58,34 +58,53 @@ function FilmGrain() {
   );
 }
 
+const DEFAULT_VIDEO_URLS = [
+  "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4",
+  "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4",
+  "https://videos.pexels.com/video-files/37515895/15894471_2560_1440_30fps.mp4",
+] as const;
+const DEFAULT_LOGO_URL = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
+
 export default function CinematicScrol({
+  videoUrls,
   videoUrl,
-  logoUrl,
+  logoUrl = DEFAULT_LOGO_URL,
 }: {
-  videoUrl: string;
-  logoUrl: string;
-}) {
+  videoUrls?: readonly string[];
+  videoUrl?: string;
+  logoUrl?: string;
+} = {}) {
+  const sceneVideoUrls = chapters.map((_, index) =>
+    videoUrls?.[index] ?? (index === 0 ? videoUrl : undefined) ?? DEFAULT_VIDEO_URLS[index] ?? DEFAULT_VIDEO_URLS[0],
+  );
   const containerRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
+  const [visibleVideoIndex, setVisibleVideoIndex] = useState(0);
+  const visibleVideoIndexRef = useRef(0);
+  const [videoTransition, setVideoTransition] = useState<{ from: number; to: number } | null>(null);
+  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
   const progressCircleRef = useRef<SVGCircleElement | null>(null);
 
   useEffect(() => {
     const section = containerRef.current;
-    const scrollHost = section?.closest<HTMLElement>("[data-landing-scroll]");
+    const scrollHost = section?.closest<HTMLElement>("[data-landing-scroll]")
+      ?? document.scrollingElement as HTMLElement | null
+      ?? document.documentElement;
     if (!section || !scrollHost) return;
 
+    const isDocumentScroll = scrollHost === document.scrollingElement;
     let frame = 0;
     const update = () => {
-      cancelAnimationFrame(frame);
+      if (frame) return;
       frame = requestAnimationFrame(() => {
+        frame = 0;
+        const hostTop = isDocumentScroll ? 0 : scrollHost.getBoundingClientRect().top;
+        const sectionTop = section.getBoundingClientRect().top - hostTop;
         const travel = Math.max(1, section.offsetHeight - scrollHost.clientHeight);
-        const nextProgress = Math.max(
-          0,
-          Math.min(1, -section.getBoundingClientRect().top / travel),
-        );
+        const nextProgress = Math.max(0, Math.min(1, -sectionTop / travel));
         if (progressCircleRef.current) {
           progressCircleRef.current.style.strokeDashoffset = String(113 * (1 - nextProgress));
         }
@@ -101,10 +120,61 @@ export default function CinematicScrol({
     };
 
     scrollHost.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
     update();
     return () => {
       scrollHost.removeEventListener("scroll", update);
-      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", update);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const incoming = videoRefs.current[activeIndex];
+    if (!incoming) return;
+
+    let cancelled = false;
+    let transitionTimer = 0;
+    setVideoTransition(null);
+
+    videoRefs.current.forEach((video, index) => {
+      if (index !== activeIndex && index !== visibleVideoIndexRef.current) video?.pause();
+    });
+
+    incoming.play().then(() => {
+      if (cancelled || activeIndexRef.current !== activeIndex) {
+        incoming.pause();
+        return;
+      }
+
+      const from = visibleVideoIndexRef.current;
+      if (from === activeIndex) return;
+
+      videoRefs.current[from]?.pause();
+      setVideoTransition({ from, to: activeIndex });
+      transitionTimer = window.setTimeout(() => {
+        if (activeIndexRef.current !== activeIndex) return;
+        visibleVideoIndexRef.current = activeIndex;
+        setVisibleVideoIndex(activeIndex);
+        setVideoTransition(null);
+      }, 1100);
+    }).catch(() => {
+      // Keep the current frame visible if a remote video is temporarily unavailable.
+    });
+
+    return () => {
+      cancelled = true;
+      if (transitionTimer) window.clearTimeout(transitionTimer);
+      if (activeIndex !== visibleVideoIndexRef.current) incoming.pause();
+    };
+  }, [activeIndex]);
+
+  useEffect(() => {
+    return () => {
+      if (videoTransition) {
+        videoRefs.current[videoTransition.to]?.pause();
+      }
+      videoRefs.current.forEach((video) => video?.pause());
     };
   }, []);
 
@@ -120,10 +190,14 @@ export default function CinematicScrol({
 
   const scrollToChapter = (index: number) => {
     const section = containerRef.current;
-    const scrollHost = section?.closest<HTMLElement>("[data-landing-scroll]");
+    const scrollHost = section?.closest<HTMLElement>("[data-landing-scroll]")
+      ?? document.scrollingElement as HTMLElement | null
+      ?? document.documentElement;
     if (!section || !scrollHost) return;
     const travel = Math.max(0, section.offsetHeight - scrollHost.clientHeight);
-    const destination = section.offsetTop + travel * index / (chapters.length - 1);
+    const hostTop = scrollHost === document.scrollingElement ? 0 : scrollHost.getBoundingClientRect().top;
+    const sectionScrollTop = section.getBoundingClientRect().top - hostTop + scrollHost.scrollTop;
+    const destination = sectionScrollTop + travel * index / (chapters.length - 1);
     scrollHost.scrollTo({ top: destination, behavior: "smooth" });
   };
 
@@ -136,17 +210,35 @@ export default function CinematicScrol({
     >
       <style>{heroStyles}</style>
       <div className="sticky top-0 h-screen w-full overflow-hidden supports-[height:100svh]:h-svh">
-        <video
-          src={videoUrl}
-          className="absolute inset-0 h-full w-full object-cover"
-          style={{ transform: "translate3d(0,0,0)", backfaceVisibility: "hidden" }}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          aria-label="Leões caminhando pela floresta"
-        />
+        <div className="absolute inset-0 isolate overflow-hidden bg-black">
+          {sceneVideoUrls.map((src, index) => {
+            const opacity = videoTransition
+              ? index === videoTransition.to ? 1 : 0
+              : index === visibleVideoIndex ? 1 : 0;
+
+            return (
+              <video
+                key={src}
+                ref={(element) => { videoRefs.current[index] = element; }}
+                src={src}
+                className="absolute inset-0 h-full w-full object-cover"
+                style={{
+                  opacity,
+                  transform: "translate3d(0,0,0)",
+                  backfaceVisibility: "hidden",
+                  transition: "opacity 1100ms ease-in-out",
+                  willChange: "opacity",
+                }}
+                muted
+                loop
+                playsInline
+                preload={index === 0 ? "auto" : "none"}
+                aria-label={`Leões na floresta — capítulo ${chapters[index].id}`}
+                tabIndex={-1}
+              />
+            );
+          })}
+        </div>
         <div aria-hidden="true" className="absolute inset-0 bg-black/40" />
         <div
           aria-hidden="true"
