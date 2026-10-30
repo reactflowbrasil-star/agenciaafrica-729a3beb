@@ -207,7 +207,7 @@ export default function CinematicScrol({
                 muted
                 loop
                 playsInline
-                preload={index === 0 ? "auto" : "none"}
+                preload="none"
                 onCanPlay={() => {
                   const video = videoRefs.current[index];
                   if (index === activeIndexRef.current || index === activeIndexRef.current + 1) {
