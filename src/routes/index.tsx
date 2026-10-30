@@ -3,7 +3,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
-import { InfiniteSlider } from "@/components/ui/infinite-slider";
+import { LogoMarquee } from "@/components/ui/logo-marquee";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
@@ -559,22 +559,10 @@ function Index() {
       </section>
 
       <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 pb-3 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <InfiniteSlider
-          gap={26}
-          duration={46}
-          reverse
-          className="mx-auto w-full max-w-[760px] [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]"
-        >
-          {PARTNER_LOGOS.map((partner) => (
-            <img
-              key={partner.src}
-              src={partner.src}
-              alt={partner.name}
-              loading="lazy"
-              className="h-10 w-10 shrink-0 object-contain opacity-45 transition-opacity duration-300 hover:opacity-90 sm:h-12 sm:w-12"
-            />
-          ))}
-        </InfiniteSlider>
+        <LogoMarquee
+          logos={PARTNER_LOGOS.map((partner) => ({ src: partner.src, alt: partner.name }))}
+          className="mx-auto w-full max-w-[760px]"
+        />
       </footer>
     </main>
   );
