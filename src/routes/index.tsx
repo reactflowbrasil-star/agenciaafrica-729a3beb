@@ -236,6 +236,9 @@ function Index() {
   const musicRef = useRef<HTMLAudioElement>(null);
   const narrationRef = useRef<HTMLAudioElement>(null);
   const questionNarrationRef = useRef<HTMLAudioElement>(null);
+  const answerReplyRef = useRef<HTMLAudioElement>(null);
+  const pendingReplyUrlRef = useRef<string | null>(null);
+  const questionAudioActiveRef = useRef(false);
   const startedRef = useRef(false);
   const showIntro = phase !== "briefing";
   const revealLanding = () => {
@@ -301,6 +304,37 @@ function Index() {
   stepRef.current = step;
   const cur = QUESTIONS[step];
 
+  const playAnswerReply = () => {
+    if (questionAudioActiveRef.current || !pendingReplyUrlRef.current) return;
+    const audio = answerReplyRef.current;
+    if (!audio) return;
+    const url = pendingReplyUrlRef.current;
+    pendingReplyUrlRef.current = null;
+    audio.src = url;
+    audio.play().catch(() => {
+      URL.revokeObjectURL(url);
+    });
+    audio.onended = () => URL.revokeObjectURL(url);
+  };
+
+  const requestAnswerReply = async (question: string, answer: string) => {
+    try {
+      const response = await fetch("/api/briefing/respond", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ question: question.replaceAll("**", ""), answer }),
+      });
+      if (!response.ok) return;
+      const audio = await response.blob();
+      const url = URL.createObjectURL(audio);
+      if (pendingReplyUrlRef.current) URL.revokeObjectURL(pendingReplyUrlRef.current);
+      pendingReplyUrlRef.current = url;
+      playAnswerReply();
+    } catch {
+      // The submitted answer is saved even if an audio provider is unavailable.
+    }
+  };
+
   const go = (next: number) => {
     changingStepRef.current = true;
     voiceModeRef.current = false;
@@ -317,6 +351,7 @@ function Index() {
 
   const submit = (v = value) => {
     if (!cur || !v.trim()) return;
+    window.setTimeout(() => void requestAnswerReply(cur.q, v.trim()), 460);
     voiceModeRef.current = false;
     voiceRecognitionRef.current?.stop();
     setAnswers((a) => ({ ...a, [cur.id]: v.trim() }));
@@ -405,12 +440,23 @@ function Index() {
           .trim();
         const activeQuestion = QUESTIONS[stepRef.current];
         if (transcript && activeQuestion) {
-          if (activeQuestion.options) {
-            setAnswers((answers) => ({ ...answers, [activeQuestion.id]: transcript }));
-          } else {
-            setValue(transcript);
-          }
-          setVoiceStatus("Resposta preenchida. Revise antes de continuar.");
+          setVoiceStatus("Interpretando sua resposta…");
+          void fetch("/api/briefing/interpret", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ question: activeQuestion.q.replaceAll("**", ""), options: activeQuestion.options ?? [], answer: transcript }),
+          }).then(async (response) => {
+            const result = response.ok ? await response.json() as { answer?: string } : null;
+            const interpreted = result?.answer?.trim() || transcript;
+            if (stepRef.current !== QUESTIONS.indexOf(activeQuestion)) return;
+            if (activeQuestion.options) setAnswers((current) => ({ ...current, [activeQuestion.id]: interpreted }));
+            else setValue(interpreted);
+            setVoiceStatus("Resposta preenchida. Revise antes de continuar.");
+          }).catch(() => {
+            if (activeQuestion.options) setAnswers((current) => ({ ...current, [activeQuestion.id]: transcript }));
+            else setValue(transcript);
+            setVoiceStatus("Resposta preenchida. Revise antes de continuar.");
+          });
         } else if (!changingStepRef.current) {
           setVoiceStatus("Nenhuma fala reconhecida. Segure para tentar novamente.");
         }
@@ -459,6 +505,7 @@ function Index() {
     const music = musicRef.current;
     if (phase !== "briefing" || (!cur && !done)) {
       audio.pause();
+      questionAudioActiveRef.current = false;
       audio.removeAttribute("src");
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.8);
       return;
@@ -484,11 +531,14 @@ function Index() {
       raf = window.requestAnimationFrame(tick);
     };
     const onEnded = () => {
+      questionAudioActiveRef.current = false;
       setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
+      playAnswerReply();
     };
 
     setNarrationProgress(0);
+    questionAudioActiveRef.current = true;
     audio.onended = onEnded;
     audio.src = source ?? "";
     audio.currentTime = 0;
@@ -510,6 +560,7 @@ function Index() {
       window.clearTimeout(revealAnyway);
       audio.pause();
       audio.onended = null;
+      questionAudioActiveRef.current = false;
     };
   }, [phase, step]);
 
@@ -534,6 +585,7 @@ function Index() {
       <audio ref={musicRef} src={backgroundTrack} loop preload="none" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <audio ref={narrationRef} src={narrationUrl} preload="auto" />
       <audio ref={questionNarrationRef} preload="auto" />
+      <audio ref={answerReplyRef} preload="none" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/12 to-background/20" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.26), transparent 72%)" }} />
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}

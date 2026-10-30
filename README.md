@@ -26,3 +26,15 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Integrações do briefing
+
+O painel administrativo fica em `/painel`. Configure no ambiente do servidor:
+
+- `ADMIN_USER`: `agenciaafrica`
+- `ADMIN_PASSWORD`: defina a senha administrativa informada pelo responsável, diretamente como segredo no provedor de hospedagem.
+- `ADMIN_SESSION_SECRET`: segredo aleatório forte e permanente (por exemplo, gere com `openssl rand -hex 32`). Ele assina as sessões e deriva a chave AES-GCM que criptografa as credenciais salvas.
+
+As chaves do ElevenLabs e do Gemini são cadastradas no painel e nunca são devolvidas ao navegador. Em Cloudflare Workers, crie um namespace KV e associe-o ao binding `AFRICA_SETTINGS`. Em hospedagem Node/Coolify, monte um volume persistente em `/data` (ou defina `AFRICA_SETTINGS_FILE` para um caminho persistente). Sem um desses armazenamentos, o painel não consegue persistir as chaves.
+
+O ElevenLabs gera uma confirmação falada depois que cada resposta é enviada. A voz aguarda a narração da próxima pergunta terminar. O Gemini interpreta transcrições do reconhecimento de voz e gera a confirmação curta. Sem a chave do Gemini, a confirmação usa uma frase padrão; sem a chave do ElevenLabs, o áudio original das perguntas segue funcionando, sem confirmação falada.
