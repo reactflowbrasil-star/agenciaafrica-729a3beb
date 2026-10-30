@@ -7,6 +7,7 @@ import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 const CinematicScrol = lazy(() => import("@/components/ui/scroll-triggered-video-hero"));
 import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
+const introLogo = "/africa-logo-official.png";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = "https://agenciaafrica.lovable.app/__l5e/assets-v1/cf54ad2d-7ecb-4d05-b54e-6c76cc9b7c4c/africa-narracao.mp3";
 const lionForestUrl = "https://agenciaafrica.lovable.app/__l5e/assets-v1/a63ba6d8-d96e-49bb-8500-0eda4f7ef079/lion-forest-01.mp4";
@@ -552,12 +553,13 @@ function Index() {
               onDrawComplete={revealIntroLogo}
             />
             <img
-              src={logo}
-              alt=""
+              src={introLogo}
+              alt="Logo oficial da Agência AFRICA"
               aria-hidden="true"
               fetchPriority="high"
               decoding="async"
-              className={`absolute left-1/2 top-1/2 max-h-[30svh] w-[min(72vw,560px)] -translate-x-1/2 -translate-y-1/2 object-contain transition-opacity duration-1000 ease-in-out ${introLogoVisible ? "opacity-100" : "opacity-0"}`}
+              className={`absolute left-1/2 top-1/2 aspect-square -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-1000 ease-in-out ${introLogoVisible ? "opacity-100" : "opacity-0"}`}
+              style={{ width: "min(82vw, 70svh, 560px)", objectPosition: "50% 52%" }}
             />
           </div>
         </div>
