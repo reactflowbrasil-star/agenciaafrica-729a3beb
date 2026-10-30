@@ -74,6 +74,7 @@ export default function CinematicScrol({
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const chapterContentRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
   const progressCircleRef = useRef<SVGCircleElement | null>(null);
@@ -100,6 +101,13 @@ export default function CinematicScrol({
           progressCircleRef.current.style.strokeDashoffset = String(113 * (1 - nextProgress));
         }
         const position = nextProgress * (chapters.length - 1);
+        chapterContentRefs.current.forEach((content, index) => {
+          if (!content) return;
+          const offset = Math.max(-1, Math.min(1, position - index));
+          const scale = 1 - Math.abs(offset) * 0.018;
+          content.style.transform =
+            "translate3d(0, " + (-offset * 32).toFixed(2) + "px, 0) scale(" + scale.toFixed(4) + ")";
+        });
         const nextIndex = Math.min(Math.floor(position), chapters.length - 1);
         const nextScene = Math.min(nextIndex + 1, chapters.length - 1);
         const blend = position - nextIndex;
@@ -111,6 +119,9 @@ export default function CinematicScrol({
             ? index === nextIndex ? 1 - blend : index === nextScene ? blend : 0
             : index === nextIndex ? 1 : 0;
           video.style.opacity = String(opacity);
+          const parallax = Math.max(-1, Math.min(1, position - index));
+          video.style.transform =
+            "translate3d(0, " + (-parallax * 3).toFixed(3) + "%, 0) scale(1.08)";
           if (index === nextIndex || index === nextScene) {
             if (video.preload === "none") {
               video.preload = "auto";
@@ -248,7 +259,7 @@ export default function CinematicScrol({
                   active ? "opacity-100" : "pointer-events-none opacity-0",
                 )}
               >
-                <div key={item.id + "-" + activeIndex} className="pointer-events-auto w-full min-w-0 max-w-4xl [overflow-wrap:anywhere]">
+                <div ref={(element) => { chapterContentRefs.current[index] = element; }} key={item.id + "-" + activeIndex} className="pointer-events-auto w-full min-w-0 max-w-4xl [overflow-wrap:anywhere]" style={{ willChange: "transform" }}>
                   <div className="africa-copy-fade mb-5 flex items-center gap-3 sm:mb-7 sm:gap-4">
                     <div className="h-0.5 w-8 bg-primary sm:w-12" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary sm:text-xs sm:tracking-[0.3em]">
