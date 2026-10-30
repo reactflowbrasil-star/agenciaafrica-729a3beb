@@ -68,6 +68,8 @@ export default function CinematicScrol({
 }) {
   const containerRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [navIndex, setNavIndex] = useState(0);
+  const [navTitleLeaving, setNavTitleLeaving] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -101,6 +103,16 @@ export default function CinematicScrol({
     };
   }, []);
 
+  useEffect(() => {
+    if (activeIndex === navIndex) return;
+    setNavTitleLeaving(true);
+    const timer = window.setTimeout(() => {
+      setNavIndex(activeIndex);
+      setNavTitleLeaving(false);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [activeIndex, navIndex]);
+
   const scrollToChapter = (index: number) => {
     const section = containerRef.current;
     const scrollHost = section?.closest<HTMLElement>("[data-landing-scroll]");
@@ -110,7 +122,7 @@ export default function CinematicScrol({
     scrollHost.scrollTo({ top: destination, behavior: "smooth" });
   };
 
-  const chapter = chapters[activeIndex];
+  const chapter = chapters[navIndex];
 
   return (
     <section
@@ -228,7 +240,7 @@ export default function CinematicScrol({
             <span className="block text-[9px] uppercase tracking-[0.2em] text-white/50 sm:text-[10px] sm:tracking-widest">
               Capítulo {chapter.id}
             </span>
-            <span key={activeIndex} className="africa-nav-title block max-w-[38vw] truncate text-xs font-bold text-white sm:min-w-[120px] sm:max-w-none">
+            <span key={navIndex} className={cn("africa-nav-title block max-w-[38vw] truncate text-xs font-bold text-white transition-all duration-300 sm:min-w-[120px] sm:max-w-none", navTitleLeaving ? "-translate-y-2.5 opacity-0" : "translate-y-0 opacity-100")}>
               {chapter.title}
             </span>
           </div>
