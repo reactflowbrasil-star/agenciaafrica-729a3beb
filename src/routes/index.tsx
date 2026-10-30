@@ -11,7 +11,7 @@ const introLogo = "/africa-logo-official.png";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = "https://agenciaafrica.lovable.app/__l5e/assets-v1/cf54ad2d-7ecb-4d05-b54e-6c76cc9b7c4c/africa-narracao.mp3";
 const lionForestUrl = "https://agenciaafrica.lovable.app/__l5e/assets-v1/a63ba6d8-d96e-49bb-8500-0eda4f7ef079/lion-forest-01.mp4";
-const introVideoUrls = [lionForestUrl] as const;
+const introVideoUrls = ["https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4", lionForestUrl] as const;
 const heroVideoUrls = [
   lionForestUrl,
   "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4",
@@ -856,7 +856,7 @@ function Em({ text, progress }: { text: string; progress?: number }) {
       count += 1;
       setLocalVisibleCharacters(count);
       if (count >= totalCharacters) window.clearInterval(timer);
-    }, 22);
+    }, 16);
     return () => window.clearInterval(timer);
   }, [text, totalCharacters, progress]);
 

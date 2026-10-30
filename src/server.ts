@@ -236,7 +236,11 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
-      const apiResponse = await handleApi(request, (env ?? {}) as RuntimeEnv).catch((error: unknown) => {
+      // Cloudflare supplies bindings in `env`; Node hosts expose these values
+      // through process.env. Support both execution models.
+      const nodeEnv = (globalThis as typeof globalThis & { process?: { env?: RuntimeEnv } }).process?.env;
+      const runtimeEnv = { ...(nodeEnv ?? {}), ...((env ?? {}) as RuntimeEnv) };
+      const apiResponse = await handleApi(request, runtimeEnv).catch((error: unknown) => {
         console.error(error);
         return json({ error: "Falha no serviço. Configure o armazenamento persistente AFRICA_SETTINGS e as variáveis administrativas no servidor." }, 500, { "cache-control": "no-store" });
       });

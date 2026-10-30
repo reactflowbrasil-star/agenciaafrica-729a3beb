@@ -74,6 +74,7 @@ export default function CinematicScrol({
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const currentVideoIndexRef = useRef(0);
   const chapterContentRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
@@ -114,16 +115,21 @@ export default function CinematicScrol({
         const blend = position - nextIndex;
         const nextVideo = videoRefs.current[nextScene];
         const blendReady = nextScene !== nextIndex && Boolean(nextVideo && nextVideo.readyState >= 2);
+        const activeVideo = videoRefs.current[nextIndex];
+        if (nextIndex > currentVideoIndexRef.current && activeVideo && activeVideo.readyState >= 2) {
+          currentVideoIndexRef.current = nextIndex;
+        }
+        const heldScene = blendReady ? nextIndex : Math.min(nextIndex, currentVideoIndexRef.current);
         videoRefs.current.forEach((video, index) => {
           if (!video) return;
           const opacity = blendReady
             ? index === nextIndex ? 1 - blend : index === nextScene ? blend : 0
-            : index === nextIndex ? 1 : 0;
+            : index === heldScene ? 1 : 0;
           video.style.opacity = String(opacity);
           const parallax = Math.max(-1, Math.min(1, position - index));
           video.style.transform =
             "translate3d(0, " + (-parallax * 3).toFixed(3) + "%, 0) scale(1.08)";
-          if (index === nextIndex || index === nextScene) {
+          if (index === heldScene || index === nextIndex || index === nextScene) {
             if (video.preload === "none" && !loadedVideosRef.current.has(index)) {
               loadedVideosRef.current.add(index);
               video.preload = "auto";
@@ -185,7 +191,7 @@ export default function CinematicScrol({
   return (
     <section
       ref={containerRef}
-      className="africa-scroll-story relative h-[600vh] w-full max-w-full overflow-x-clip supports-[height:100svh]:h-[600svh]"
+      className="africa-scroll-story relative h-[300vh] w-full max-w-full overflow-x-clip supports-[height:100svh]:h-[300svh]"
     >
       <style>{heroStyles}</style>
       <div className="sticky top-0 h-screen w-full max-w-full overflow-hidden supports-[height:100svh]:h-svh">
@@ -203,7 +209,7 @@ export default function CinematicScrol({
                   opacity,
                   transform: "translate3d(0,0,0)",
                   backfaceVisibility: "hidden",
-                  transition: "none",
+                  transition: "opacity 450ms ease-in-out",
                   willChange: "opacity",
                 }}
                 muted

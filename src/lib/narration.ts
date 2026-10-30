@@ -14,7 +14,7 @@ export function getNarrationFrame(time: number) {
     const next = phrase[index + 1]?.[1] ?? NARRATION[phraseIndex + 1]?.[0]?.[1] ?? start + 0.25;
     // Never impose a minimum duration: the closing sentence has 30ms slots.
     // Finish slightly before the next word, rather than trailing the voice.
-    const duration = Math.max(0, (next - start) * 0.92);
+    const duration = Math.max(0, (next - start) * 0.98);
     if (time >= start) {
       const progress = duration > 0 ? Math.min(1, (time - start) / duration) : 1;
       typed = offset + Math.ceil(word.length * progress);
