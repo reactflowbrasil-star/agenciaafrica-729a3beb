@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
+import LiquidGlassLogoReveal from "@/components/ui/liquid-glass-logo-reveal";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
@@ -505,7 +506,7 @@ function Index() {
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
       {phase === "logo" && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ease-in-out ${introFading ? "opacity-0" : "opacity-100"}`}>
-          <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 2600ms ease-out both" }} />
+          <LiquidGlassLogoReveal src={logo} alt="" duration={6000} className="h-auto max-h-[55dvh] w-[min(78vw,760px)]" />
         </div>
       )}
       {phase === "start" && (
