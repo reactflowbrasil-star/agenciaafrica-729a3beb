@@ -67,6 +67,7 @@ export default function CinematicScrol({
 }) {
   const containerRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const activeIndexRef = useRef(0);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
   const progressCircleRef = useRef<SVGCircleElement | null>(null);
@@ -92,7 +93,10 @@ export default function CinematicScrol({
           Math.floor(nextProgress * chapters.length),
           chapters.length - 1,
         );
-        setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+        if (activeIndexRef.current !== nextIndex) {
+          activeIndexRef.current = nextIndex;
+          setActiveIndex(nextIndex);
+        }
       });
     };
 
