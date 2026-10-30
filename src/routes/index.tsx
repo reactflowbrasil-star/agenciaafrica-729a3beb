@@ -511,7 +511,7 @@ function Index() {
       )}
       {phase === "start" && (
         <div className={`fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center transition-opacity duration-700 sm:gap-10 ${introFading ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-          <img src={logo} alt="AFRICA" className="h-auto w-[min(70vw,360px)] object-contain" />
+          <LiquidGlassLogoReveal src={logo} alt="AFRICA" duration={6000} className="h-auto w-[min(70vw,360px)]" />
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <Button
               type="button"
