@@ -141,13 +141,13 @@ function Index() {
 
   useEffect(() => {
     if (phase !== "logo") return;
-    const fadeTimer = window.setTimeout(() => setIntroFading(true), 9000);
+    const fadeTimer = window.setTimeout(() => setIntroFading(true), 7500);
     const finishTimer = window.setTimeout(() => {
       const music = musicRef.current;
       if (music) rampVolume(music, MUSIC_FULL, 2.5);
       setPhase("briefing");
       setStep(0);
-    }, 10000);
+    }, 8500);
     return () => {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
@@ -406,7 +406,7 @@ function Index() {
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
       {phase === "logo" && (
-        <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ${introFading ? "opacity-0" : "opacity-100"}`}>
+        <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ease-in-out ${introFading ? "opacity-0" : "opacity-100"}`}>
           <img src={logo} alt="" className="africa-intro-logo h-auto max-h-[55dvh] w-[min(78vw,760px)] object-contain" style={{ animation: "africaIntroLogo 2600ms ease-out both" }} />
         </div>
       )}
@@ -612,11 +612,9 @@ function Em({ text, progress }: { text: string; progress?: number }) {
   const totalCharacters = Array.from(plainText).length;
   const [localVisibleCharacters, setLocalVisibleCharacters] = useState(0);
   const clampedProgress = progress === undefined ? 0 : Math.max(0, Math.min(1, progress));
-  // Type the whole question well before the voice-over finishes, so the line is
-  // always complete and readable by the time the spoken words catch up.
-  const TYPE_SPAN = 0.55;
-  const spanned = Math.min(1, clampedProgress / TYPE_SPAN);
-  const synchronizedProgress = 1 - Math.pow(1 - spanned, 1.9);
+  // Keep character reveal linear to the narration clock so the middle and end
+  // of each spoken question do not run ahead of the audio.
+  const synchronizedProgress = clampedProgress;
   const visibleCharacters = progress === undefined
     ? localVisibleCharacters
     : Math.floor(totalCharacters * synchronizedProgress);

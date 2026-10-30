@@ -47,15 +47,14 @@ const heroStyles = [
 
 function FilmGrain() {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 opacity-[0.06] mix-blend-overlay">
-      <div
-        className="absolute inset-0 h-full w-full"
-        style={{
-          backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.65%27 numOctaves=%273%27 stitchTiles=%27stitch%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%271%27/%3E%3C/svg%3E")',
-          backgroundRepeat: "repeat",
-        }}
-      />
-    </div>
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-20 opacity-[0.035] mix-blend-overlay"
+      style={{
+        backgroundImage: "radial-gradient(rgba(255,255,255,.35) .5px, transparent .5px)",
+        backgroundSize: "4px 4px",
+      }}
+    />
   );
 }
 
@@ -70,7 +69,7 @@ export default function CinematicScrol({
   const [activeIndex, setActiveIndex] = useState(0);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const progressCircleRef = useRef<SVGCircleElement | null>(null);
 
   useEffect(() => {
     const section = containerRef.current;
@@ -86,7 +85,9 @@ export default function CinematicScrol({
           0,
           Math.min(1, -section.getBoundingClientRect().top / travel),
         );
-        setProgress(nextProgress);
+        if (progressCircleRef.current) {
+          progressCircleRef.current.style.strokeDashoffset = String(113 * (1 - nextProgress));
+        }
         const nextIndex = Math.min(
           Math.floor(nextProgress * chapters.length),
           chapters.length - 1,
@@ -131,33 +132,18 @@ export default function CinematicScrol({
     >
       <style>{heroStyles}</style>
       <div className="sticky top-0 h-screen w-full overflow-hidden supports-[height:100svh]:h-svh">
-        <div className="absolute inset-0 h-full w-full overflow-hidden bg-black">
-          {chapters.map((item, index) => {
-            const active = index === activeIndex;
-            return (
-              <div
-                key={item.id}
-                style={{ zIndex: active ? 10 : 0 }}
-                className={cn(
-                  "absolute inset-0 h-full w-full transition-opacity duration-[1200ms] ease-in-out",
-                  active ? "opacity-100" : "opacity-0",
-                )}
-              >
-                <video
-                  src={videoUrl}
-                  className="h-full w-full object-cover"
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
-                  aria-label="Leões caminhando pela floresta"
-                />
-                <div aria-hidden="true" className="absolute inset-0 bg-black/40" />
-              </div>
-            );
-          })}
-        </div>
+        <video
+          src={videoUrl}
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ transform: "translate3d(0,0,0)", backfaceVisibility: "hidden" }}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-label="Leões caminhando pela floresta"
+        />
+        <div aria-hidden="true" className="absolute inset-0 bg-black/40" />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
@@ -248,14 +234,15 @@ export default function CinematicScrol({
             <svg className="-rotate-90" viewBox="0 0 48 48" aria-hidden="true">
               <circle cx="24" cy="24" r="18" className="stroke-white/15" strokeWidth="2" fill="none" />
               <circle
+                ref={progressCircleRef}
                 cx="24"
                 cy="24"
                 r="18"
-                className="stroke-primary transition-[stroke-dashoffset] duration-300 ease-out"
+                className="stroke-primary"
                 strokeWidth="2"
                 fill="none"
                 strokeDasharray="113"
-                strokeDashoffset={113 * (1 - progress)}
+                strokeDashoffset="113"
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center text-white">
