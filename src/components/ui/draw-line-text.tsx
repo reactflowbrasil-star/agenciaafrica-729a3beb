@@ -9,6 +9,7 @@ type DrawTextProps = {
   color?: string;
   fontSize?: number;
   letterSpacing?: number;
+  onDrawComplete?: () => void;
   oneByOne?: boolean;
   strokeWidth?: number;
   text: string;
@@ -24,6 +25,7 @@ export const DrawLineText = ({
   wordSpacing = 10,
   strokeWidth = 1,
   letterSpacing = 0,
+  onDrawComplete,
   ...props
 }: DrawTextProps) => {
   const wrapperRef = useRef<SVGSVGElement | null>(null);
@@ -58,6 +60,7 @@ export const DrawLineText = ({
       const visibleGlyphs = children.filter((element) => element.textContent?.trim());
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         gsap.set(visibleGlyphs, { strokeDashoffset: 0, fillOpacity: 1 });
+        onDrawComplete?.();
         return;
       }
 
@@ -77,10 +80,11 @@ export const DrawLineText = ({
           stagger: { amount: 0.2, from: "center" },
         });
       }
+      if (onDrawComplete) timeline.eventCallback("onComplete", onDrawComplete);
     },
     {
       scope: wrapperRef,
-      dependencies: [text, oneByOne, afterFill, fontSize, wordSpacing, letterSpacing],
+      dependencies: [text, oneByOne, afterFill, fontSize, wordSpacing, letterSpacing, onDrawComplete],
       revertOnUpdate: true,
     },
   );
