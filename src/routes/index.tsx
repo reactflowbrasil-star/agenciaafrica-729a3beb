@@ -1,17 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type RefObject } from "react";
 import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import lionForestAsset from "@/assets/lion-forest-01.mp4.asset.json";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
-import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
+const CinematicScrol = lazy(() => import("@/components/ui/scroll-triggered-video-hero"));
 import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
 const lionForestUrl = new URL(lionForestAsset.url, "https://agenciaafrica.lovable.app").toString();
+const introVideoUrls = [lionForestUrl] as const;
 const heroVideoUrls = [lionForestUrl, "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4", "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4", "https://videos.pexels.com/video-files/37515895/15894471_2560_1440_30fps.mp4", "https://videos.pexels.com/video-files/11528208/11528208-uhd_1440_2562_30fps.mp4", "https://videos.pexels.com/video-files/35884354/15219737_1440_2560_30fps.mp4"] as const;
 
 function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: boolean }) {
@@ -24,9 +25,15 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
   const [incomingLayer, setIncomingLayer] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!active || urls.length < 2) {
+    if (!active) {
       videos.current.forEach((video) => video?.pause());
       return;
+    }
+
+    if (urls.length < 2) {
+      const first = videos.current[0];
+      if (first?.paused) void first.play().catch(() => {});
+      return () => first?.pause();
     }
 
     let transitionTimer = 0;
@@ -81,7 +88,7 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
           muted
           loop
           playsInline
-          preload={index === 0 ? "auto" : "none"}
+          preload="none"
           onCanPlay={() => {
             if (index === pending.current) beginRef.current(index);
             else if (active && index === current.current) void videos.current[index]?.play().catch(() => {});
@@ -497,8 +504,8 @@ function Index() {
   return (
     <main className={`relative min-h-dvh w-full bg-background font-sans text-foreground ${landingVisible ? "overflow-visible" : "overflow-hidden"}`}>
       <style>{`@keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-typewriter-caret { animation: none; } }`}</style>
-      <SiteVideoBackdrop urls={heroVideoUrls} active={!landingVisible} />
-      <audio ref={musicRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
+      <SiteVideoBackdrop urls={introVideoUrls} active={phase === "narrating" || phase === "logo"} />
+      <audio ref={musicRef} src={backgroundTrack} loop preload="none" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <audio ref={narrationRef} src={narrationUrl} preload="auto" />
       <audio ref={questionNarrationRef} preload="auto" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/12 to-background/20" />
@@ -550,7 +557,7 @@ function Index() {
       </div>
 
       <header className={`absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 pt-6 transition-opacity duration-500 sm:px-10 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <img src={logo} alt="AFRICA" className="h-[90px] w-auto sm:h-[108px]" />
+        <img src={logo} alt="AFRICA" fetchPriority="high" decoding="async" className="h-[90px] w-auto sm:h-[108px]" />
         <div className="flex items-center gap-4">
           {step >= 0 && !done && (
             <span className="font-display text-sm font-light tracking-[0.25em] text-muted-foreground">
@@ -698,6 +705,9 @@ function Index() {
               src={partner.src}
               alt={partner.name}
               loading="lazy"
+              decoding="async"
+              width={48}
+              height={48}
               className="h-10 w-10 shrink-0 object-contain opacity-45 transition-opacity duration-300 hover:opacity-90 sm:h-12 sm:w-12"
             />
           ))}
@@ -708,7 +718,11 @@ function Index() {
         aria-hidden={!landingVisible}
         className={`fixed inset-0 z-[80] overflow-y-auto bg-black transition-opacity duration-1000 ease-out ${landingVisible ? (landingFadeIn ? "opacity-100" : "opacity-0") : "pointer-events-none opacity-0"}`}
       >
-        {landingVisible && <CinematicScrol videoUrls={heroVideoUrls} logoUrl={logo} />}
+        {landingVisible && (
+          <Suspense fallback={<div className="min-h-dvh bg-black" aria-label="Carregando a landing page" />}>
+            <CinematicScrol videoUrls={heroVideoUrls} logoUrl={logo} />
+          </Suspense>
+        )}
       </div>
 </main>
   );
