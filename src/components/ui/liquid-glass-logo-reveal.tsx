@@ -18,7 +18,9 @@ export function LiquidGlassLogoReveal({
   duration = 6000,
 }: LiquidGlassLogoRevealProps) {
   const filterId = React.useId().replace(/:/g, "");
-  const style = { ["--glass-reveal-duration" as string]: duration + "ms" };
+  const style: React.CSSProperties & { "--glass-reveal-duration": string } = {
+    "--glass-reveal-duration": duration + "ms",
+  };
 
   return (
     <div className={"africa-glass-reveal " + className} style={style}>
