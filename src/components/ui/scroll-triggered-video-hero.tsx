@@ -49,14 +49,14 @@ function FilmGrain() {
 }
 
 const DEFAULT_VIDEO_URLS = [
-  "/videos/intro-lions.mp4",
-  "/videos/agency-essence.mp4",
-  "/videos/paid-media.mp4",
-  "/videos/web-experience.mp4",
-  "/videos/branding.mp4",
-  "/videos/automation.mp4",
+  "https://agenciaafrica.lovable.app/__l5e/assets-v1/a63ba6d8-d96e-49bb-8500-0eda4f7ef079/lion-forest-01.mp4",
+  "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4",
+  "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4",
+  "https://videos.pexels.com/video-files/37515895/15894471_2560_1440_30fps.mp4",
+  "https://videos.pexels.com/video-files/11528208/11528208-uhd_1440_2562_30fps.mp4",
+  "https://videos.pexels.com/video-files/35884354/15219737_1440_2560_30fps.mp4",
 ] as const;
-const DEFAULT_LOGO_URL = "/africa-logo.png";
+const DEFAULT_LOGO_URL = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 
 export default function CinematicScrol({
   videoUrls,

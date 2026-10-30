@@ -6,18 +6,18 @@ import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 const CinematicScrol = lazy(() => import("@/components/ui/scroll-triggered-video-hero"));
 import { DrawLineText } from "@/components/ui/draw-line-text";
-const logo = "/africa-logo.png";
-const backgroundTrack = "/audio/africa-background.mp3";
-const narrationUrl = "/audio/africa-narration.mp3";
-const lionForestUrl = "/videos/intro-lions.mp4";
+const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
+const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
+const narrationUrl = "https://agenciaafrica.lovable.app/__l5e/assets-v1/cf54ad2d-7ecb-4d05-b54e-6c76cc9b7c4c/africa-narracao.mp3";
+const lionForestUrl = "https://agenciaafrica.lovable.app/__l5e/assets-v1/a63ba6d8-d96e-49bb-8500-0eda4f7ef079/lion-forest-01.mp4";
 const introVideoUrls = [lionForestUrl] as const;
 const heroVideoUrls = [
   lionForestUrl,
-  "/videos/agency-essence.mp4",
-  "/videos/paid-media.mp4",
-  "/videos/web-experience.mp4",
-  "/videos/branding.mp4",
-  "/videos/automation.mp4",
+  "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4",
+  "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4",
+  "https://videos.pexels.com/video-files/37515895/15894471_2560_1440_30fps.mp4",
+  "https://videos.pexels.com/video-files/11528208/11528208-uhd_1440_2562_30fps.mp4",
+  "https://videos.pexels.com/video-files/35884354/15219737_1440_2560_30fps.mp4",
 ] as const;
 
 function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: boolean }) {
@@ -117,17 +117,17 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
 }
 
 const PARTNER_LOGOS = [
-  { src: "/partner-logos/google_ads.webp", name: "Google Ads" },
-  { src: "/partner-logos/meta.webp", name: "Meta" },
-  { src: "/partner-logos/google_partner.webp", name: "Google Partner" },
-  { src: "/partner-logos/youtube.webp", name: "YouTube" },
-  { src: "/partner-logos/google_analytics.webp", name: "Google Analytics" },
-  { src: "/partner-logos/google_tag_manager.webp", name: "Google Tag Manager" },
-  { src: "/partner-logos/google_workspace.webp", name: "Google Workspace" },
-  { src: "/partner-logos/looker_studio.webp", name: "Looker Studio" },
-  { src: "/partner-logos/tiktok.webp", name: "TikTok" },
-  { src: "/partner-logos/rd_station.webp", name: "RD Station" },
-  { src: "/partner-logos/hubspot.webp", name: "HubSpot" },
+  { src: "/partner-logos/google_ads.png", name: "Google Ads" },
+  { src: "/partner-logos/meta.png", name: "Meta" },
+  { src: "/partner-logos/google_partner.png", name: "Google Partner" },
+  { src: "/partner-logos/youtube.png", name: "YouTube" },
+  { src: "/partner-logos/google_analytics.png", name: "Google Analytics" },
+  { src: "/partner-logos/google_tag_manager.png", name: "Google Tag Manager" },
+  { src: "/partner-logos/google_workspace.png", name: "Google Workspace" },
+  { src: "/partner-logos/looker_studio.png", name: "Looker Studio" },
+  { src: "/partner-logos/tiktok.png", name: "TikTok" },
+  { src: "/partner-logos/rd_station.png", name: "RD Station" },
+  { src: "/partner-logos/hubspot.png", name: "HubSpot" },
 ] as const;
 
 type VoiceRecognitionEvent = {
