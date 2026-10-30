@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
-import LiquidGlassLogoReveal from "@/components/ui/liquid-glass-logo-reveal";
+import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
@@ -506,12 +506,12 @@ function Index() {
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
       {phase === "logo" && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ease-in-out ${introFading ? "opacity-0" : "opacity-100"}`}>
-          <LiquidGlassLogoReveal src={logo} alt="" duration={6000} className="h-auto max-h-[55dvh] w-[min(78vw,760px)]" />
+          <div className="w-[min(88vw,820px)]"><DrawLineText role="img" aria-label="AFRICA" text="AFRICA" className="font-display font-semibold" fontSize={160} strokeWidth={1.7} letterSpacing={4} wordSpacing={18} color="#ffffff" /></div>
         </div>
       )}
       {phase === "start" && (
         <div className={`fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center transition-opacity duration-700 sm:gap-10 ${introFading ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-          <LiquidGlassLogoReveal src={logo} alt="AFRICA" duration={6000} className="h-auto w-[min(70vw,360px)]" />
+          <div className="w-[min(72vw,420px)]"><DrawLineText role="img" aria-label="AFRICA" text="AFRICA" className="font-display font-semibold" fontSize={112} strokeWidth={1.5} letterSpacing={3} wordSpacing={14} color="#ffffff" /></div>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <Button
               type="button"
