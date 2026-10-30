@@ -205,8 +205,19 @@ function Index() {
   const [step, setStep] = useState(-2);
   const [phase, setPhase] = useState<Phase>("start");
   const [introFading, setIntroFading] = useState(false);
+  const [introTextVisible, setIntroTextVisible] = useState(true);
   const [introLogoVisible, setIntroLogoVisible] = useState(false);
-  const revealIntroLogo = useCallback(() => setIntroLogoVisible(true), []);
+  const introLogoRevealTimerRef = useRef<number | null>(null);
+  const revealIntroLogo = useCallback(() => {
+    setIntroTextVisible(false);
+    if (introLogoRevealTimerRef.current !== null) {
+      window.clearTimeout(introLogoRevealTimerRef.current);
+    }
+    introLogoRevealTimerRef.current = window.setTimeout(() => {
+      setIntroLogoVisible(true);
+      introLogoRevealTimerRef.current = null;
+    }, 700);
+  }, []);
   const [leaving, setLeaving] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
@@ -251,6 +262,7 @@ function Index() {
 
   useEffect(() => {
     if (phase !== "logo") return;
+    setIntroTextVisible(true);
     setIntroLogoVisible(false);
     const fadeTimer = window.setTimeout(() => setIntroFading(true), 9500);
     const finishTimer = window.setTimeout(() => {
@@ -260,6 +272,10 @@ function Index() {
       setStep(0);
     }, 10500);
     return () => {
+      if (introLogoRevealTimerRef.current !== null) {
+        window.clearTimeout(introLogoRevealTimerRef.current);
+        introLogoRevealTimerRef.current = null;
+      }
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
     };
@@ -527,7 +543,7 @@ function Index() {
               role="img"
               aria-label="AFRICA"
               text="AFRICA"
-              className={`font-display font-semibold transition-opacity duration-700 ease-in-out ${introLogoVisible ? "opacity-0" : "opacity-100"}`}
+              className={`font-display font-semibold transition-opacity duration-700 ease-in-out ${introTextVisible ? "opacity-100" : "opacity-0"}`}
               fontSize={160}
               strokeWidth={1.7}
               letterSpacing={4}
