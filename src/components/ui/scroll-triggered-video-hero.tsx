@@ -113,10 +113,10 @@ export default function CinematicScrol({
           video.style.opacity = String(opacity);
           if (index === nextIndex || index === nextScene) {
             if (video.preload === "none") {
-              video.preload = "metadata";
+              video.preload = "auto";
               video.load();
             }
-            if (video.readyState >= 2 && video.paused) void video.play().catch(() => {});
+            if (video.paused) void video.play().catch(() => {});
           } else if (!video.paused) {
             video.pause();
           }
@@ -227,7 +227,7 @@ export default function CinematicScrol({
         <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-5 py-5 sm:px-8 sm:py-7 lg:px-14">
           <img src={logoUrl} alt="AFRICA" className="h-auto w-[min(38vw,180px)] object-contain sm:w-[190px]" />
           <a
-            href="https://wa.me/558391907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
+            href="https://wa.me/558398907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
             target="_blank"
             rel="noreferrer"
             className="rounded-full border border-white/40 px-4 py-2.5 text-xs font-semibold text-white backdrop-blur-md transition hover:border-white hover:bg-white/10 sm:px-5 sm:text-sm"
@@ -267,7 +267,7 @@ export default function CinematicScrol({
                   </div>
                   {index === chapters.length - 1 ? (
                     <a
-                      href="https://wa.me/558391907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
+                      href="https://wa.me/558398907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
                       target="_blank"
                       rel="noreferrer"
                       className="africa-copy-fade africa-delay-700 mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:scale-105 hover:translate-x-2.5 active:scale-95 sm:mt-9 sm:px-8 sm:text-base"
@@ -292,7 +292,7 @@ export default function CinematicScrol({
           })}
         </div>
 
-        <a href="https://wa.me/558391907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto." target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
+        <a href="https://wa.me/558398907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto." target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
           <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current sm:h-8 sm:w-8" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.08 0C5.5 0 .15 5.34.15 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.28-1.65a11.9 11.9 0 0 0 5.79 1.47h.01C18.66 23.82 24 18.48 24 11.9c0-3.18-1.24-6.17-3.48-8.42ZM12.08 21.8a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.73.98 1-3.64-.23-.37a9.85 9.85 0 0 1-1.52-5.26c0-5.46 4.45-9.9 9.9-9.9a9.83 9.83 0 0 1 7 2.9 9.84 9.84 0 0 1 2.9 7c0 5.45-4.44 9.88-9.91 9.88Zm5.43-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.93 1.17-.17.2-.34.22-.64.07-.3-.15-1.26-.46-2.4-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.34.44-.5.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.66-.51h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.27.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.42-.08-.12-.27-.2-.57-.35Z"/></svg>
         </a>
         <div className="africa-nav-enter fixed bottom-4 left-1/2 z-50 flex max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/80 py-2 pl-4 pr-2 shadow-2xl backdrop-blur-xl sm:bottom-7 sm:gap-4 sm:pl-6">

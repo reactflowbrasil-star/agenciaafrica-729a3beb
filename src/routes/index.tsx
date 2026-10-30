@@ -35,8 +35,9 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
       if (!next) return;
       pending.current = index;
       if (next.readyState < 2) {
-        next.preload = "metadata";
+        next.preload = "auto";
         next.load();
+        void next.play().catch(() => {});
         return;
       }
 
@@ -57,7 +58,7 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
 
     const first = videos.current[current.current];
     if (first && first.paused) void first.play().catch(() => {});
-    const cycle = window.setInterval(() => begin((current.current + 1) % urls.length), 9000);
+    const cycle = window.setInterval(() => begin((current.current + 1) % urls.length), 8000);
 
     return () => {
       window.clearInterval(cycle);
@@ -432,7 +433,7 @@ function Index() {
     let revealed = -1;
     const syncTypewriterToAudio = () => {
       if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
-      const next = Math.min(1, audio.currentTime / audio.duration);
+      const next = Math.min(1, (audio.currentTime / audio.duration) * 1.22);
       const characters = Math.floor(next * headingChars);
       if (next < 1 && characters === revealed) return;
       revealed = characters;
@@ -736,7 +737,7 @@ function Em({ text, progress }: { text: string; progress?: number }) {
       count += 1;
       setLocalVisibleCharacters(count);
       if (count >= totalCharacters) window.clearInterval(timer);
-    }, 34);
+    }, 22);
     return () => window.clearInterval(timer);
   }, [text, totalCharacters, progress]);
 
