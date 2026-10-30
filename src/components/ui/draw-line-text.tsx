@@ -56,6 +56,11 @@ export const DrawLineText = ({
       setTextDimension({ width: totalWidth, height: maxHeight });
 
       const visibleGlyphs = children.filter((element) => element.textContent?.trim());
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set(visibleGlyphs, { strokeDashoffset: 0, fillOpacity: 1 });
+        return;
+      }
+
       const timeline = gsap.timeline();
       timeline.to(visibleGlyphs, {
         strokeDashoffset: 0,
