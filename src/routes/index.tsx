@@ -4,7 +4,7 @@ import narrationAsset from "@/assets/africa-narracao.mp3.asset.json";
 import lionForestAsset from "@/assets/lion-forest-01.mp4.asset.json";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
-import { LogoMarquee } from "@/components/ui/logo-marquee";
+import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
@@ -577,10 +577,22 @@ function Index() {
       </section>
 
       <footer className={`fixed inset-x-0 bottom-0 z-30 border-t-0 bg-transparent px-4 pb-3 transition-opacity duration-500 ${showIntro ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-        <LogoMarquee
-          logos={PARTNER_LOGOS.map((partner) => ({ src: partner.src, alt: partner.name }))}
-          className="mx-auto w-full max-w-[760px]"
-        />
+        <InfiniteSlider
+          gap={26}
+          duration={46}
+          reverse
+          className="mx-auto w-full max-w-[760px] [mask-image:linear-gradient(to_right,transparent,black_12%,black_88%,transparent)]"
+        >
+          {PARTNER_LOGOS.map((partner) => (
+            <img
+              key={partner.src}
+              src={partner.src}
+              alt={partner.name}
+              loading="lazy"
+              className="h-10 w-10 shrink-0 object-contain opacity-45 transition-opacity duration-300 hover:opacity-90 sm:h-12 sm:w-12"
+            />
+          ))}
+        </InfiniteSlider>
       </footer>
           <div
         data-landing-scroll
