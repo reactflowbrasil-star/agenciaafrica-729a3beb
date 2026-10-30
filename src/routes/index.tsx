@@ -114,6 +114,7 @@ function Index() {
   const [voiceStatus, setVoiceStatus] = useState("");
   const [narrationProgress, setNarrationProgress] = useState(0);
   const [landingVisible, setLandingVisible] = useState(false);
+  const [landingFadeIn, setLandingFadeIn] = useState(false);
   const landingTimerRef = useRef<number | null>(null);
   const [musicPlaying, setMusicPlaying] = useState(false);
   const musicRef = useRef<HTMLAudioElement>(null);
@@ -121,6 +122,10 @@ function Index() {
   const questionNarrationRef = useRef<HTMLAudioElement>(null);
   const startedRef = useRef(false);
   const showIntro = phase !== "briefing";
+  const revealLanding = () => {
+    setLandingVisible(true);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => setLandingFadeIn(true)));
+  };
 
   // One tap on "Iniciar" starts both soundtracks together: the looping
   // background track and the voice-over. Browsers only allow audible playback
@@ -162,7 +167,7 @@ function Index() {
     if (!done || phase !== "briefing") return;
     const timer = window.setTimeout(() => {
       landingTimerRef.current = null;
-      setLandingVisible(true);
+      revealLanding();
     }, 2000);
     landingTimerRef.current = timer;
     return () => {
@@ -412,7 +417,7 @@ function Index() {
         </div>
       )}
       {phase === "start" && (
-        <div className="fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center sm:gap-10">
+        <div className={`fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center transition-opacity duration-700 sm:gap-10 ${introFading ? "pointer-events-none opacity-0" : "opacity-100"}`}>
           <img src={logo} alt="AFRICA" className="h-auto w-[min(70vw,360px)] object-contain" />
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <Button
@@ -426,7 +431,7 @@ function Index() {
             </Button>
             <Button
               type="button"
-              onClick={() => { setShowIntro(false); requestAnimationFrame(() => setLandingVisible(true)); }}
+              onClick={() => { setIntroFading(true); revealLanding(); }}
               variant="ghost"
               className="h-12 rounded-none border-b border-foreground/35 px-1 font-display text-sm font-light text-foreground/80 hover:bg-transparent hover:text-primary sm:text-base"
             >
@@ -608,7 +613,7 @@ function Index() {
           <div
         data-landing-scroll
         aria-hidden={!landingVisible}
-        className={`fixed inset-0 z-[80] overflow-y-auto bg-black transition-opacity duration-1000 ease-out ${landingVisible ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        className={`fixed inset-0 z-[80] overflow-y-auto bg-black transition-opacity duration-1000 ease-out ${landingVisible ? (landingFadeIn ? "opacity-100" : "opacity-0") : "pointer-events-none opacity-0"}`}
       >
         {landingVisible && <CinematicScrol videoUrls={heroVideoUrls} logoUrl={logo} />}
       </div>

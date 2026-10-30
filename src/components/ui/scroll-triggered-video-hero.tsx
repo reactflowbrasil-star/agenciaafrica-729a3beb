@@ -25,14 +25,13 @@ const heroStyles = [
   "@keyframes africa-hero-title { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }",
   "@keyframes africa-nav-enter { from { opacity: 0; transform: translate(-50%, 100px); } to { opacity: 1; transform: translate(-50%, 0); } }",
   "@keyframes africa-nav-title { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }",
-  "@keyframes africa-whatsapp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,.35); } 50% { box-shadow: 0 0 0 8px rgba(37,211,102,0); } }",
+  "@keyframes africa-whatsapp-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(37,211,102,.45); } 50% { box-shadow: 0 0 0 12px rgba(37,211,102,0); } }",
   ".africa-whatsapp-float { animation: africa-whatsapp-pulse 2.8s ease-out infinite; }",
   ".africa-copy-fade { opacity: 0; animation: africa-hero-fade 800ms ease-out 400ms both; }",
   ".africa-delay-500 { animation-delay: 500ms; } .africa-delay-600 { animation-delay: 600ms; } .africa-delay-700 { animation-delay: 700ms; }",
   ".africa-title-reveal { display: block; opacity: 0; animation: africa-hero-title 800ms cubic-bezier(.16,1,.3,1) 500ms both; }",
   ".africa-nav-enter { animation: africa-nav-enter 600ms ease-out 500ms both; }",
   ".africa-nav-title { animation: africa-nav-title 300ms ease-out both; }",
-  "@media (prefers-reduced-motion: reduce) { .africa-whatsapp-float { animation: none; } }",
   "@media (prefers-reduced-motion: reduce) { .africa-copy-fade, .africa-title-reveal, .africa-nav-enter, .africa-nav-title { opacity: 1; animation: none; } }",
 ].join("\n");
 
@@ -74,13 +73,11 @@ export default function CinematicScrol({
   const containerRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
-  const [visibleVideoIndex, setVisibleVideoIndex] = useState(0);
-  const visibleVideoIndexRef = useRef(0);
-  const [videoTransition, setVideoTransition] = useState<{ from: number; to: number; progress: number } | null>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
   const progressCircleRef = useRef<SVGCircleElement | null>(null);
+  const updateScrollRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const section = containerRef.current;
@@ -102,10 +99,28 @@ export default function CinematicScrol({
         if (progressCircleRef.current) {
           progressCircleRef.current.style.strokeDashoffset = String(113 * (1 - nextProgress));
         }
-        const nextIndex = Math.min(
-          Math.floor(nextProgress * chapters.length),
-          chapters.length - 1,
-        );
+        const position = nextProgress * (chapters.length - 1);
+        const nextIndex = Math.min(Math.floor(position), chapters.length - 1);
+        const nextScene = Math.min(nextIndex + 1, chapters.length - 1);
+        const blend = position - nextIndex;
+        const nextVideo = videoRefs.current[nextScene];
+        const blendReady = nextScene !== nextIndex && Boolean(nextVideo && nextVideo.readyState >= 2);
+        videoRefs.current.forEach((video, index) => {
+          if (!video) return;
+          const opacity = blendReady
+            ? index === nextIndex ? 1 - blend : index === nextScene ? blend : 0
+            : index === nextIndex ? 1 : 0;
+          video.style.opacity = String(opacity);
+          if (index === nextIndex || index === nextScene) {
+            if (video.preload === "none") {
+              video.preload = "metadata";
+              video.load();
+            }
+            if (video.readyState >= 2 && video.paused) void video.play().catch(() => {});
+          } else if (!video.paused) {
+            video.pause();
+          }
+        });
         if (activeIndexRef.current !== nextIndex) {
           activeIndexRef.current = nextIndex;
           setActiveIndex(nextIndex);
@@ -113,63 +128,20 @@ export default function CinematicScrol({
       });
     };
 
+    updateScrollRef.current = update;
     scrollHost.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
     update();
     return () => {
+      updateScrollRef.current = null;
       scrollHost.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
       if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
-  useEffect(() => {
-    const incoming = videoRefs.current[activeIndex];
-    if (!incoming) return;
-
-    let cancelled = false;
-    let transitionTimer = 0;
-    setVideoTransition(null);
-
-    videoRefs.current.forEach((video, index) => {
-      if (index !== activeIndex && index !== visibleVideoIndexRef.current) video?.pause();
-    });
-
-    incoming.play().then(() => {
-      if (cancelled || activeIndexRef.current !== activeIndex) {
-        incoming.pause();
-        return;
-      }
-
-      const from = visibleVideoIndexRef.current;
-      if (from === activeIndex) return;
-
-      videoRefs.current[from]?.pause();
-      setVideoTransition({ from, to: activeIndex });
-      transitionTimer = window.setTimeout(() => {
-        if (activeIndexRef.current !== activeIndex) return;
-        visibleVideoIndexRef.current = activeIndex;
-        setVisibleVideoIndex(activeIndex);
-        setVideoTransition(null);
-      }, 1100);
-    }).catch(() => {
-      // Keep the current frame visible if a remote video is temporarily unavailable.
-    });
-
-    return () => {
-      cancelled = true;
-      if (transitionTimer) window.clearTimeout(transitionTimer);
-      if (activeIndex !== visibleVideoIndexRef.current) incoming.pause();
-    };
-  }, [activeIndex]);
-
-  useEffect(() => {
-    return () => {
-      if (videoTransition) {
-        videoRefs.current[videoTransition.to]?.pause();
-      }
-      videoRefs.current.forEach((video) => video?.pause());
-    };
+  useEffect(() => () => {
+    videoRefs.current.forEach((video) => video?.pause());
   }, []);
 
   useEffect(() => {
@@ -191,7 +163,7 @@ export default function CinematicScrol({
     const travel = Math.max(0, section.offsetHeight - scrollHost.clientHeight);
     const hostTop = scrollHost === document.scrollingElement ? 0 : scrollHost.getBoundingClientRect().top;
     const sectionScrollTop = section.getBoundingClientRect().top - hostTop + scrollHost.scrollTop;
-    const destination = sectionScrollTop + travel * index / chapters.length;
+    const destination = sectionScrollTop + travel * index / (chapters.length - 1);
     scrollHost.scrollTo({ top: destination, behavior: "smooth" });
   };
 
@@ -204,11 +176,9 @@ export default function CinematicScrol({
     >
       <style>{heroStyles}</style>
       <div className="sticky top-0 h-screen w-full max-w-full overflow-hidden supports-[height:100svh]:h-svh">
-        <div className="absolute inset-0 isolate overflow-hidden bg-black">
+        <div className="absolute inset-0 isolate overflow-hidden bg-[radial-gradient(ellipse_at_62%_38%,#33452b_0%,#182016_48%,#080a08_100%)]">
           {sceneVideoUrls.map((src, index) => {
-            const opacity = videoTransition
-              ? index === videoTransition.to ? videoTransition.progress : index === videoTransition.from ? 1 - videoTransition.progress : 0
-              : index === visibleVideoIndex ? 1 : 0;
+            const opacity = index === 0 ? 1 : 0;
 
             return (
               <video
@@ -220,14 +190,25 @@ export default function CinematicScrol({
                   opacity,
                   transform: "translate3d(0,0,0)",
                   backfaceVisibility: "hidden",
-                  transition: "opacity 1100ms ease-in-out",
+                  transition: "none",
                   willChange: "opacity",
                 }}
                 muted
                 loop
                 playsInline
                 preload={index === 0 ? "auto" : "none"}
-                aria-label={`Leões na floresta — capítulo ${chapters[index].id}`}
+                onCanPlay={() => {
+                  const video = videoRefs.current[index];
+                  if (index === activeIndexRef.current || index === activeIndexRef.current + 1) {
+                    void video?.play().catch(() => {});
+                    updateScrollRef.current?.();
+                  }
+                }}
+                onError={() => {
+                  const video = videoRefs.current[index];
+                  if (video) { video.style.opacity = "0"; video.style.visibility = "hidden"; }
+                }}
+                aria-label="Vídeo cinematográfico de fundo"
                 tabIndex={-1}
               />
             );
@@ -286,7 +267,7 @@ export default function CinematicScrol({
                   </div>
                   {index === chapters.length - 1 ? (
                     <a
-                      href="https://wa.me/558391907010"
+                      href="https://wa.me/558391907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
                       target="_blank"
                       rel="noreferrer"
                       className="africa-copy-fade africa-delay-700 mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:scale-105 hover:translate-x-2.5 active:scale-95 sm:mt-9 sm:px-8 sm:text-base"
@@ -311,7 +292,7 @@ export default function CinematicScrol({
           })}
         </div>
 
-        <a href="https://wa.me/558391907010" target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
+        <a href="https://wa.me/558391907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto." target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
           <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current sm:h-8 sm:w-8" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.08 0C5.5 0 .15 5.34.15 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.28-1.65a11.9 11.9 0 0 0 5.79 1.47h.01C18.66 23.82 24 18.48 24 11.9c0-3.18-1.24-6.17-3.48-8.42ZM12.08 21.8a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.73.98 1-3.64-.23-.37a9.85 9.85 0 0 1-1.52-5.26c0-5.46 4.45-9.9 9.9-9.9a9.83 9.83 0 0 1 7 2.9 9.84 9.84 0 0 1 2.9 7c0 5.45-4.44 9.88-9.91 9.88Zm5.43-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.93 1.17-.17.2-.34.22-.64.07-.3-.15-1.26-.46-2.4-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.34.44-.5.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.66-.51h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.27.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.42-.08-.12-.27-.2-.57-.35Z"/></svg>
         </a>
         <div className="africa-nav-enter fixed bottom-4 left-1/2 z-50 flex max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/80 py-2 pl-4 pr-2 shadow-2xl backdrop-blur-xl sm:bottom-7 sm:gap-4 sm:pl-6">
