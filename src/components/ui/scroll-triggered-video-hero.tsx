@@ -214,12 +214,12 @@ export default function CinematicScrol({
             );
           })}
         </div>
-        <div aria-hidden="true" className="absolute inset-0 bg-black/40" />
+        <div aria-hidden="true" className="absolute inset-0 bg-black/25" />
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
           style={{
-            background: "linear-gradient(90deg, rgba(0,0,0,.72) 0%, rgba(0,0,0,.38) 55%, rgba(0,0,0,.12) 100%), linear-gradient(0deg, rgba(0,0,0,.38), transparent 55%)",
+            background: "linear-gradient(90deg, rgba(0,0,0,.56) 0%, rgba(0,0,0,.24) 55%, rgba(0,0,0,.06) 100%), linear-gradient(0deg, rgba(0,0,0,.24), transparent 55%)",
           }}
         />
         <FilmGrain />

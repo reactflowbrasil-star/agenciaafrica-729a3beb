@@ -8,11 +8,98 @@ import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
-const bg = "https://agenciaafrica.lovable.app/__l5e/assets-v1/5d3e8bd4-5e05-49fc-afdc-4ff9fd9c000b/africa-bg.mp4";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
 const narrationUrl = new URL(narrationAsset.url, "https://agenciaafrica.lovable.app").toString();
 const lionForestUrl = new URL(lionForestAsset.url, "https://agenciaafrica.lovable.app").toString();
-const heroVideoUrls = [lionForestUrl, "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4", "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4"] as const;
+const heroVideoUrls = [lionForestUrl, "https://videos.pexels.com/video-files/7710515/7710515-hd_1920_1080_25fps.mp4", "https://videos.pexels.com/video-files/37516159/15894554_2560_1440_30fps.mp4", "https://videos.pexels.com/video-files/37515895/15894471_2560_1440_30fps.mp4", "https://videos.pexels.com/video-files/11528208/11528208-uhd_1440_2562_30fps.mp4", "https://videos.pexels.com/video-files/35884354/15219737_1440_2560_30fps.mp4"] as const;
+
+function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: boolean }) {
+  const videos = useRef<Array<HTMLVideoElement | null>>([]);
+  const current = useRef(0);
+  const incoming = useRef<number | null>(null);
+  const pending = useRef<number | null>(null);
+  const beginRef = useRef<(index: number) => void>(() => {});
+  const [currentLayer, setCurrentLayer] = useState(0);
+  const [incomingLayer, setIncomingLayer] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!active || urls.length < 2) {
+      videos.current.forEach((video) => video?.pause());
+      return;
+    }
+
+    let transitionTimer = 0;
+    const begin = (index: number) => {
+      if (incoming.current !== null || index === current.current) return;
+      const next = videos.current[index];
+      if (!next) return;
+      pending.current = index;
+      if (next.readyState < 2) {
+        next.preload = "metadata";
+        next.load();
+        return;
+      }
+
+      pending.current = null;
+      void next.play().catch(() => {});
+      incoming.current = index;
+      setIncomingLayer(index);
+      transitionTimer = window.setTimeout(() => {
+        const previous = current.current;
+        current.current = index;
+        setCurrentLayer(index);
+        incoming.current = null;
+        setIncomingLayer(null);
+        videos.current[previous]?.pause();
+      }, 1250);
+    };
+    beginRef.current = begin;
+
+    const first = videos.current[current.current];
+    if (first && first.paused) void first.play().catch(() => {});
+    const cycle = window.setInterval(() => begin((current.current + 1) % urls.length), 9000);
+
+    return () => {
+      window.clearInterval(cycle);
+      window.clearTimeout(transitionTimer);
+      beginRef.current = () => {};
+      pending.current = null;
+      incoming.current = null;
+      videos.current.forEach((video) => video?.pause());
+    };
+  }, [active, urls.length]);
+
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-0 isolate overflow-hidden bg-[radial-gradient(ellipse_at_62%_38%,#33452b_0%,#182016_48%,#080a08_100%)]">
+      {urls.map((src, index) => (
+        <video
+          key={src}
+          ref={(element) => { videos.current[index] = element; }}
+          src={src}
+          muted
+          loop
+          playsInline
+          preload={index === 0 ? "auto" : "none"}
+          onCanPlay={() => {
+            if (index === pending.current) beginRef.current(index);
+            else if (active && index === current.current) void videos.current[index]?.play().catch(() => {});
+          }}
+          onError={() => {
+            const video = videos.current[index];
+            if (video) video.style.visibility = "hidden";
+            if (pending.current === index) pending.current = null;
+          }}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1250ms] ease-in-out motion-reduce:transition-none"
+          style={{
+            opacity: index === incomingLayer || (incomingLayer === null && index === currentLayer) ? 1 : 0,
+            transform: "translate3d(0,0,0)",
+            backfaceVisibility: "hidden",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 const PARTNER_LOGOS = [
   { src: "/partner-logos/google_ads.png", name: "Google Ads" },
@@ -404,12 +491,12 @@ function Index() {
   return (
     <main className={`relative min-h-dvh w-full bg-background font-sans text-foreground ${landingVisible ? "overflow-visible" : "overflow-hidden"}`}>
       <style>{`@keyframes africaIntroLogo { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } } @keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-intro-logo { animation-duration: 1ms !important; } .africa-typewriter-caret { animation: none; } }`}</style>
-      <video src={bg} autoPlay muted loop playsInline className="bg-breathe pointer-events-none absolute inset-0 h-full w-full object-cover opacity-80" />
+      <SiteVideoBackdrop urls={heroVideoUrls} active={!landingVisible} />
       <audio ref={musicRef} src={backgroundTrack} loop preload="auto" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <audio ref={narrationRef} src={narrationUrl} preload="auto" />
       <audio ref={questionNarrationRef} preload="auto" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/25 to-background/45" />
-      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.45), transparent 72%)" }} />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/12 to-background/20" />
+      <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.26), transparent 72%)" }} />
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
       {phase === "logo" && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ease-in-out ${introFading ? "opacity-0" : "opacity-100"}`}>
