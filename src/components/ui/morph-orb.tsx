@@ -30,8 +30,8 @@ export interface MorphOrbProps {
 const PILL_H = 60, BALL_SMALL = 60, ORB_D = 132, ORB_R = 66, CANVAS = 220;
 const CARD_H = 108;
 const FLY_D = 138;
-const pillW = (containerWidth = window.innerWidth) => Math.min(560, containerWidth - 16);
-const cardW = (containerWidth = window.innerWidth) => Math.min(320, containerWidth - 16);
+const pillW = (containerWidth = window.innerWidth) => Math.min(480, containerWidth - 16);
+const cardW = (containerWidth = window.innerWidth) => Math.min(360, containerWidth - 24);
 const homeDy = () => Math.min(48, Math.max(36, window.innerWidth * 0.07));
 
 /* ───────────────────────── math + easing ───────────────────────── */
