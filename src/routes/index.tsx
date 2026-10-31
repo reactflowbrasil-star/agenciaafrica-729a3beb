@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
-import MorphOrb from "@/components/ui/morph-orb";
+import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
 import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
@@ -215,7 +215,6 @@ function Index() {
   const stepRef = useRef(step);
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
-  const [morphBusy, setMorphBusy] = useState(false);
   const [landingVisible, setLandingVisible] = useState(false);
   const [landingFadeIn, setLandingFadeIn] = useState(false);
   const landingTimerRef = useRef<number | null>(null);
@@ -286,7 +285,7 @@ function Index() {
     const crossfadeTimer = window.setTimeout(() => setPhase("logo"), 900);
     return () => window.clearTimeout(crossfadeTimer);
   }, [phase, wordmarkLogoVisible]);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
   const voiceTranscriptRef = useRef("");
@@ -346,7 +345,6 @@ function Index() {
       setStep(next);
       setValue(QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "");
       voiceBaseValueRef.current = QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "";
-      setMorphBusy(false);
       changingStepRef.current = false;
       setLeaving(false);
     }, 450);
@@ -657,7 +655,7 @@ function Index() {
         </div>
       </header>
 
-      <section key={step} className={`relative z-10 flex min-h-dvh items-center px-6 pb-36 pt-40 sm:px-16 sm:pb-32 sm:pt-44 ${leaving ? "step-out" : "step-in"}`}>
+      <section key={step} className={`relative z-10 flex min-h-dvh items-center px-6 py-28 sm:px-16 ${leaving ? "step-out" : "step-in"}`}>
         <div className="mx-auto w-full max-w-3xl">
           {step === -1 && (
             <div>
@@ -716,17 +714,8 @@ function Index() {
                 </>
               ) : (
                 <div className="mt-10">
-                  <MorphOrb
-                    key={cur.id}
-                    value={value}
-                    onChange={setValue}
-                    onSubmit={(text) => text}
-                    onComplete={submit}
-                    inputRef={inputRef}
-                    showReset={false}
-                    onPhaseChange={(currentPhase) => setMorphBusy(currentPhase !== "idle")}
-                  />
-                  {!morphBusy && <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <OrbAnswerInput key={cur.id} value={value} onChange={setValue} onSubmit={(text) => submit(text)} inputRef={inputRef} />
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
 
                     <button
                       type="button"
@@ -745,14 +734,14 @@ function Index() {
                     <span className="hidden font-light text-sm text-muted-foreground sm:inline">
                       Enter ↵ {cur.long && "· Shift+Enter nova linha"}
                     </span>
-                  </div>}
-                  {!morphBusy && <p className="mt-3 min-h-5 font-light text-xs text-muted-foreground" aria-live="polite">
+                  </div>
+                  <p className="mt-3 min-h-5 font-light text-xs text-muted-foreground" aria-live="polite">
                     {voiceStatus || (voiceMode ? "Segure o botão para falar; ao soltar, a resposta será preenchida." : "Segure o botão para falar e solte para preencher a resposta.")}
-                  </p>}
+                  </p>
                 </div>
               )}
 
-              {step > 0 && !morphBusy && (
+              {step > 0 && (
                 <button onClick={() => go(step - 1)} className="mt-10 font-light text-sm text-muted-foreground transition hover:text-foreground">
                   ← Voltar
                 </button>
