@@ -162,7 +162,7 @@ export const Route = createFileRoute("/")({
 });
 
 type Q = { id: string; q: string; hint?: string; options?: string[]; long?: boolean; type?: string };
-type Phase = "start" | "narrating" | "logo" | "briefing";
+type Phase = "start" | "narrating" | "writing" | "logo" | "briefing";
 
 // The soundtrack sits low under the voice-over, then returns to full level.
 const MUSIC_DUCKED = 0.25;
@@ -250,17 +250,22 @@ function Index() {
 
   useEffect(() => {
     if (phase !== "logo") return;
-    const fadeTimer = window.setTimeout(() => setIntroFading(true), 9500);
+    const fadeTimer = window.setTimeout(() => setIntroFading(true), 1900);
     const finishTimer = window.setTimeout(() => {
       const music = musicRef.current;
       if (music) rampVolume(music, MUSIC_FULL, 2.5);
       setPhase("briefing");
       setStep(0);
-    }, 10500);
+    }, 2700);
     return () => {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
     };
+  }, [phase]);
+  useEffect(() => {
+    if (phase !== "writing") return;
+    const timer = window.setTimeout(() => setPhase("logo"), 2400);
+    return () => window.clearTimeout(timer);
   }, [phase]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
@@ -558,7 +563,7 @@ function Index() {
 
   return (
     <main className={`relative min-h-dvh w-full bg-background font-sans text-foreground ${landingVisible ? "overflow-visible" : "overflow-hidden"}`}>
-      <style>{`@keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-typewriter-caret { animation: none; } }`}</style>
+      <style>{`@keyframes africaTypewriterCaret { 50% { opacity: 0; } } @keyframes africaWordmarkWrite { from { width: 0; } to { width: 6.2ch; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } .africa-wordmark-write { animation: africaWordmarkWrite 2.4s steps(6, end) forwards; } @media (prefers-reduced-motion: reduce) { .africa-typewriter-caret { animation: none; } .africa-wordmark-write { width: 6.2ch; border-color: transparent; animation: none; } }`}</style>
       <SiteVideoBackdrop
         urls={phase === "briefing" ? heroVideoUrls : introVideoUrls}
         active={phase === "narrating" || phase === "logo" || (phase === "briefing" && !landingVisible)}
@@ -569,7 +574,14 @@ function Index() {
       <audio ref={answerReplyRef} preload="none" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/90 via-background/12 to-background/20" />
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.26), transparent 72%)" }} />
-      {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
+      {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("writing")} />}
+      {phase === "writing" && (
+        <div aria-label="AFRICA" role="img" className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 px-4 text-white">
+          <span className="africa-wordmark-write overflow-hidden whitespace-nowrap border-r-2 border-white pr-3 font-display text-[clamp(3rem,16vw,10rem)] font-semibold leading-none tracking-[0.06em]">
+            AFRICA
+          </span>
+        </div>
+      )}
       {phase === "logo" && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ease-in-out ${introFading ? "opacity-0" : "opacity-100"}`}>
           <img
@@ -583,8 +595,10 @@ function Index() {
       )}
       {phase === "start" && (
         <div className={`fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center transition-opacity duration-700 sm:gap-10 ${introFading ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-          <img src={introLogo} alt="Agência AFRICA" fetchPriority="high" decoding="async" className="h-[min(68svh,620px)] w-auto max-w-[88vw] object-contain" />
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+          <div className="h-[min(68svh,620px)] w-[min(88vw,349px)] overflow-hidden">
+            <img src={introLogo} alt="Agência AFRICA" fetchPriority="high" decoding="async" className="h-full w-full scale-150 object-contain" />
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             <Button
               type="button"
               onClick={beginIntro}
