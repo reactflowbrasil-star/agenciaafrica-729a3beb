@@ -518,7 +518,6 @@ function Index() {
       playAnswerReply();
     };
 
-    setNarrationProgress(0);
     questionAudioActiveRef.current = true;
     audio.onended = onEnded;
     audio.src = source ?? "";
