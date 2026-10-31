@@ -875,14 +875,20 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     const audio = audioRef.current;
     if (!audio) return;
 
+    let fallbackTimer = 0;
     const finish = () => {
       if (doneRef.current) return;
       doneRef.current = true;
+      window.clearTimeout(fallbackTimer);
       setFrame(getNarrationFrame(Number.MAX_SAFE_INTEGER, Number.isFinite(audio.duration) ? audio.duration : undefined));
       setFading(true);
       window.setTimeout(() => onDoneRef.current(), 800);
     };
     audio.addEventListener("ended", finish);
+    audio.addEventListener("error", finish);
+    // The narration is about 31 seconds; never leave the intro blocking the
+    // briefing if the stream stalls and the browser never emits `ended`.
+    fallbackTimer = window.setTimeout(finish, 45_000);
 
     // Audio is the master clock: bound interpolation to avoid accumulating
     // drift, and freeze text when playback pauses or buffers.
@@ -920,7 +926,9 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     raf = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(raf);
+      window.clearTimeout(fallbackTimer);
       audio.removeEventListener("ended", finish);
+      audio.removeEventListener("error", finish);
     };
   }, []);
 
