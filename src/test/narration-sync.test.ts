@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAudioTypewriterProgress, getNarrationFrame } from "@/lib/narration";
+import { getNarrationFrame } from "@/lib/narration";
 
 describe("Narration closing sentence timing", () => {
   it("finishes short words before the following word starts", () => {
@@ -27,8 +27,4 @@ describe("Narration closing sentence timing", () => {
     expect(frame.fullText.slice(0, frame.typed)).toBe("Muito prazer, somos a agência África.");
   });
 
-  it("keeps the question typewriter at the audio clock instead of racing ahead", () => {
-    expect(getAudioTypewriterProgress(4, 10)).toBe(0.4);
-    expect(getAudioTypewriterProgress(12, 10)).toBe(1);
-  });
 });

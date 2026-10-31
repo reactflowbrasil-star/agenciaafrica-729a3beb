@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { getAudioTypewriterProgress, getNarrationFrame } from "@/lib/narration";
+import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
@@ -215,7 +215,6 @@ function Index() {
   const stepRef = useRef(step);
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
-  const [narrationProgress, setNarrationProgress] = useState(0);
   const [landingVisible, setLandingVisible] = useState(false);
   const [landingFadeIn, setLandingFadeIn] = useState(false);
   const landingTimerRef = useRef<number | null>(null);
@@ -492,7 +491,6 @@ function Index() {
     const music = musicRef.current;
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
     audio.src = source ?? "";
-    setNarrationProgress(0);
     audio.currentTime = 0;
     audio.play().catch(() => {
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
@@ -514,27 +512,8 @@ function Index() {
     }
 
     const source = done ? COMPLETION_AUDIO_URL : QUESTION_AUDIO_URLS[step];
-    // The heading is typed one character at a time, so the audio clock only has
-    // to publish a new value when the next character actually becomes due.
-    // That keeps the reveal smooth without re-rendering the page every frame.
-    const headingChars = Math.max(1, Array.from(cur ? cur.q.split("**").join("") : "").length);
-    let raf = 0;
-    let revealed = -1;
-    const syncTypewriterToAudio = () => {
-      if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
-      const next = getAudioTypewriterProgress(audio.currentTime, audio.duration);
-      const characters = Math.floor(next * headingChars);
-      if (next < 1 && characters === revealed) return;
-      revealed = characters;
-      setNarrationProgress(next);
-    };
-    const tick = () => {
-      syncTypewriterToAudio();
-      raf = window.requestAnimationFrame(tick);
-    };
     const onEnded = () => {
       questionAudioActiveRef.current = false;
-      setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 1);
       playAnswerReply();
     };
@@ -544,22 +523,12 @@ function Index() {
     audio.onended = onEnded;
     audio.src = source ?? "";
     audio.currentTime = 0;
-    syncTypewriterToAudio();
     if (music && !music.paused) rampVolume(music, MUSIC_DUCKED, 0.6);
-    // If the voice-over cannot play at all (blocked, missing file), the heading
-    // must still appear, so the full question is shown after a short grace time.
-    const revealAnyway = window.setTimeout(() => {
-      if (!Number.isFinite(audio.duration) || audio.duration <= 0 || audio.paused) setNarrationProgress(1);
-    }, 1500);
     audio.play().catch(() => {
-      setNarrationProgress(1);
       if (music && !music.paused) rampVolume(music, MUSIC_FULL, 0.6);
     });
-    raf = window.requestAnimationFrame(tick);
 
     return () => {
-      window.cancelAnimationFrame(raf);
-      window.clearTimeout(revealAnyway);
       audio.pause();
       audio.onended = null;
       questionAudioActiveRef.current = false;
@@ -724,7 +693,7 @@ function Index() {
                   <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 fill-current"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zm-2.5-9v2.06a7 7 0 0 1 0 13.88V21a9 9 0 0 0 0-18z" /></svg>
                 </button>
               </div>
-              <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-7xl"><Em text={cur.q} progress={narrationProgress} /></h2>
+              <h2 className="text-balance font-display text-4xl font-extralight leading-[1.04] tracking-[-0.025em] sm:text-7xl"><Em text={cur.q} /></h2>
               {cur.hint && <p className="mt-3 font-light text-lg text-muted-foreground">{cur.hint}</p>}
 
               {cur.options ? (
@@ -847,21 +816,14 @@ function Index() {
 }
 
 /* Types the heading in while preserving its bold-marked segments. */
-function Em({ text, progress }: { text: string; progress?: number }) {
+function Em({ text }: { text: string }) {
   const segments = text.split("**");
   const plainText = segments.join("");
   const totalCharacters = Array.from(plainText).length;
   const [localVisibleCharacters, setLocalVisibleCharacters] = useState(0);
-  const clampedProgress = progress === undefined ? 0 : Math.max(0, Math.min(1, progress));
-  // Keep character reveal linear to the narration clock so the middle and end
-  // of each spoken question do not run ahead of the audio.
-  const synchronizedProgress = clampedProgress;
-  const visibleCharacters = progress === undefined
-    ? localVisibleCharacters
-    : Math.floor(totalCharacters * synchronizedProgress);
+  const visibleCharacters = localVisibleCharacters;
 
   useEffect(() => {
-    if (progress !== undefined) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) {
       setLocalVisibleCharacters(totalCharacters);
@@ -876,7 +838,7 @@ function Em({ text, progress }: { text: string; progress?: number }) {
       if (count >= totalCharacters) window.clearInterval(timer);
     }, 16);
     return () => window.clearInterval(timer);
-  }, [text, totalCharacters, progress]);
+  }, [text, totalCharacters]);
 
   let previousCharacters = 0;
   const typedSegments = segments.map((part, index) => {

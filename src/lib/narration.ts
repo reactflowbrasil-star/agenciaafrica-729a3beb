@@ -32,9 +32,5 @@ export function getNarrationFrame(time: number, mediaDuration?: number) {
   return { fullText: phrase.map(([word]) => word).join(" "), typed };
 }
 
-export function getAudioTypewriterProgress(currentTime: number, duration: number) {
-  if (!Number.isFinite(currentTime) || !Number.isFinite(duration) || duration <= 0) return 0;
-  return Math.max(0, Math.min(1, currentTime / duration));
-}
 
 export const NARRATION: [string, number][][] = [[["Nascemos", 0.2], ["para", 0.96], ["desafiar", 1.25], ["a", 1.95], ["mesmice.", 2.07]], [["Ideias", 3.0], ["frescas,", 3.53], ["execuções", 4.59], ["corajosas,", 5.48]], [["onde", 6.64], ["a", 6.9], ["cultura", 6.98], ["encontra", 7.49], ["os", 7.92], ["negócios.", 8.05]], [["Inquietos", 9.37], ["por", 10.13], ["natureza,", 10.31], ["provocadores", 11.26], ["por", 12.21], ["vocação.", 12.4]], [["O", 13.35], ["olhar", 13.48], ["da", 13.91], ["experiência,", 14.08], ["a", 15.02], ["alma", 15.15], ["de", 15.48], ["um", 15.61], ["estagiário.", 15.77]], [["Ginga", 16.78], ["brasileira", 17.26], ["no", 17.94], ["peito,", 18.09], ["ambição", 18.86], ["global", 19.39], ["nos", 19.91], ["passos.", 20.08]], [["Um", 21.13], ["templo", 21.49], ["erguido", 22.22], ["para", 23.02], ["quem", 23.45], ["acredita", 23.89], ["no", 24.69], ["poder", 24.85], ["das", 25.27], ["ideias,", 25.53]], [["porque", 26.68], ["quem", 27.2], ["respeita", 27.49], ["a", 28.13], ["propaganda", 28.27], ["honra", 29.24], ["a", 29.36], ["sua", 29.39], ["história.", 29.49]], [["Muito", 29.8], ["prazer,", 29.92], ["somos", 30.14], ["a", 30.29], ["agência", 30.32], ["África.", 30.48]]];
