@@ -32,7 +32,10 @@ const heroStyles = [
   ".africa-title-reveal { display: block; opacity: 0; animation: africa-hero-title 800ms cubic-bezier(.16,1,.3,1) 500ms both; }",
   ".africa-nav-enter { animation: africa-nav-enter 600ms ease-out 500ms both; }",
   ".africa-nav-title { animation: africa-nav-title 300ms ease-out both; }",
-  "@media (prefers-reduced-motion: reduce) { .africa-copy-fade, .africa-title-reveal, .africa-nav-enter, .africa-nav-title { opacity: 1; animation: none; } }",
+  ".africa-scene-video { transition: opacity 850ms cubic-bezier(.22,1,.36,1); }",
+  "@media (max-width: 639px) { .africa-chapter-body { padding-top: clamp(8.5rem, 22svh, 11rem); padding-bottom: 8.5rem; } .africa-chapter-card { padding: .875rem; } }",
+  "@media (max-height: 700px) and (max-width: 767px) { .africa-chapter-body { padding-top: 7.75rem; padding-bottom: 7.25rem; } .africa-chapter-card { margin-top: .75rem; } }",
+  "@media (prefers-reduced-motion: reduce) { .africa-copy-fade, .africa-title-reveal, .africa-nav-enter, .africa-nav-title, .africa-whatsapp-float { opacity: 1; animation: none; } .africa-scene-video { transition: none !important; } }",
 ].join("\n");
 
 function FilmGrain() {
@@ -78,6 +81,8 @@ export default function CinematicScrol({
   const chapterContentRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [navIndex, setNavIndex] = useState(0);
   const [navTitleLeaving, setNavTitleLeaving] = useState(false);
+  const [headerCompact, setHeaderCompact] = useState(false);
+  const headerCompactRef = useRef(false);
   const progressCircleRef = useRef<SVGCircleElement | null>(null);
   const updateScrollRef = useRef<(() => void) | null>(null);
   const loadedVideosRef = useRef(new Set<number>());
@@ -99,6 +104,11 @@ export default function CinematicScrol({
         const sectionTop = section.getBoundingClientRect().top - hostTop;
         const travel = Math.max(1, section.offsetHeight - scrollHost.clientHeight);
         const nextProgress = Math.max(0, Math.min(1, -sectionTop / travel));
+        const compactHeader = nextProgress > 0.015;
+        if (headerCompactRef.current !== compactHeader) {
+          headerCompactRef.current = compactHeader;
+          setHeaderCompact(compactHeader);
+        }
         if (progressCircleRef.current) {
           progressCircleRef.current.style.strokeDashoffset = String(113 * (1 - nextProgress));
         }
@@ -183,7 +193,10 @@ export default function CinematicScrol({
     const hostTop = scrollHost === document.scrollingElement ? 0 : scrollHost.getBoundingClientRect().top;
     const sectionScrollTop = section.getBoundingClientRect().top - hostTop + scrollHost.scrollTop;
     const destination = sectionScrollTop + travel * index / (chapters.length - 1);
-    scrollHost.scrollTo({ top: destination, behavior: "smooth" });
+    scrollHost.scrollTo({
+      top: destination,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+    });
   };
 
   const chapter = chapters[navIndex];
@@ -204,12 +217,12 @@ export default function CinematicScrol({
                 key={src}
                 ref={(element) => { videoRefs.current[index] = element; }}
                 src={src}
-                className="absolute inset-0 h-full w-full object-cover"
+                className="africa-scene-video absolute inset-0 h-full w-full object-cover"
                 style={{
                   opacity,
                   transform: "translate3d(0,0,0)",
                   backfaceVisibility: "hidden",
-                  transition: "opacity 450ms ease-in-out",
+                  transition: undefined,
                   willChange: "opacity",
                 }}
                 muted
@@ -245,8 +258,11 @@ export default function CinematicScrol({
         />
         <FilmGrain />
 
-        <header className="absolute inset-x-0 top-0 z-40 flex items-center justify-between px-5 py-5 sm:px-8 sm:py-7 lg:px-14">
-          <img src={logoUrl} alt="AFRICA" className="h-auto w-[min(38vw,180px)] object-contain sm:w-[190px]" />
+        <header className={cn(
+          "absolute inset-x-0 top-0 z-40 flex items-center justify-between px-4 transition-all duration-500 sm:px-8 lg:px-14",
+          headerCompact ? "bg-black/35 py-3 shadow-lg backdrop-blur-xl sm:py-4" : "py-4 sm:py-7",
+        )}>
+          <img src={logoUrl} alt="AFRICA" className={cn("h-auto w-[clamp(7.5rem,30vw,11.25rem)] object-contain transition-all duration-500", headerCompact && "w-[clamp(6.5rem,24vw,9rem)]")} />
           <a
             href="https://wa.me/558398907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
             target="_blank"
@@ -265,24 +281,24 @@ export default function CinematicScrol({
                 key={item.id}
                 aria-hidden={!active}
                 className={cn(
-                  "absolute inset-0 flex items-center px-5 pb-20 pt-24 transition-opacity duration-[1200ms] ease-in-out sm:px-10 lg:px-24",
+                  "africa-chapter-body absolute inset-0 flex items-start px-5 pt-32 pb-28 transition-opacity duration-[900ms] ease-in-out sm:items-center sm:px-10 sm:pt-28 sm:pb-24 lg:px-24",
                   active ? "opacity-100" : "pointer-events-none opacity-0",
                 )}
               >
                 <div ref={(element) => { chapterContentRefs.current[index] = element; }} key={item.id + "-" + activeIndex} className="pointer-events-auto w-full min-w-0 max-w-4xl [overflow-wrap:anywhere]" style={{ willChange: "transform" }}>
-                  <div className="africa-copy-fade mb-5 flex items-center gap-3 sm:mb-7 sm:gap-4">
+                  <div className="africa-copy-fade mb-3 flex items-center gap-3 sm:mb-7 sm:gap-4">
                     <div className="h-0.5 w-8 bg-primary sm:w-12" />
                     <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-primary sm:text-xs sm:tracking-[0.3em]">
                       Capítulo {item.id} · {item.title}
                     </span>
                   </div>
-                  <div className="mb-6 overflow-hidden py-2">
-                    <h1 className="africa-title-reveal max-w-4xl text-balance text-[clamp(2rem,9vw,4.5rem)] font-black leading-[1.02] tracking-[-0.045em] break-words text-white sm:text-6xl md:text-7xl lg:text-8xl">
+                  <div className="mb-4 overflow-hidden py-2 sm:mb-6">
+                    <h1 className="africa-title-reveal max-w-4xl text-balance text-[clamp(1.75rem,7.2vw,3.25rem)] font-black leading-[1.04] tracking-[-0.04em] break-words text-white sm:text-5xl md:text-6xl lg:text-7xl">
                       {item.subtitle}
                     </h1>
                   </div>
-                  <div className="africa-copy-fade africa-delay-600 mt-5 max-w-xl rounded-2xl border border-white/15 bg-black/20 p-4 shadow-2xl backdrop-blur-md sm:mt-7 sm:p-6">
-                    <p className="text-pretty text-sm font-light leading-relaxed text-white/85 sm:text-lg">
+                  <div className="africa-chapter-card africa-copy-fade africa-delay-600 mt-3 max-w-xl rounded-2xl border border-white/15 bg-black/30 p-4 shadow-2xl backdrop-blur-md sm:mt-7 sm:p-6">
+                    <p className="text-pretty text-xs font-light leading-relaxed text-white/90 sm:text-lg">
                       {item.description}
                     </p>
                   </div>
@@ -291,7 +307,7 @@ export default function CinematicScrol({
                       href="https://wa.me/558398907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto."
                       target="_blank"
                       rel="noreferrer"
-                      className="africa-copy-fade africa-delay-700 mt-7 inline-flex min-h-12 items-center gap-3 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:scale-105 hover:translate-x-2.5 active:scale-95 sm:mt-9 sm:px-8 sm:text-base"
+                      className="africa-copy-fade africa-delay-700 mt-4 inline-flex min-h-12 items-center gap-3 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:scale-105 hover:translate-x-2.5 active:scale-95 sm:mt-9 sm:px-8 sm:text-base"
                     >
                       Vamos conversar <ChevronRight size={20} aria-hidden="true" />
                     </a>
@@ -299,7 +315,7 @@ export default function CinematicScrol({
                     <button
                       type="button"
                       onClick={() => scrollToChapter(index + 1)}
-                      className="africa-copy-fade africa-delay-700 group mt-7 inline-flex min-h-12 items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:scale-105 hover:translate-x-2.5 active:scale-95 sm:mt-9 sm:text-sm"
+                      className="africa-copy-fade africa-delay-700 group mt-3 inline-flex min-h-12 items-center gap-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-white transition hover:scale-105 hover:translate-x-2.5 active:scale-95 sm:mt-9 sm:text-sm sm:tracking-[0.2em]"
                     >
                       <span className="grid h-11 w-11 place-items-center rounded-full border border-white/40 transition group-hover:bg-white group-hover:text-black">
                         <ChevronRight size={19} aria-hidden="true" />
@@ -316,7 +332,7 @@ export default function CinematicScrol({
         <a href="https://wa.me/558398907010?text=Ol%C3%A1%21%20Conheci%20a%20Ag%C3%AAncia%20AFRICA%20pelo%20site%20e%20gostaria%20de%20conversar%20sobre%20um%20projeto." target="_blank" rel="noreferrer" aria-label="Fale com a AFRICA pelo WhatsApp" className="africa-whatsapp-float fixed bottom-[calc(env(safe-area-inset-bottom)+1.25rem)] right-4 z-[60] grid h-14 w-14 place-items-center rounded-full bg-[#25D366] text-white shadow-xl ring-4 ring-white/15 transition hover:scale-110 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16">
           <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current sm:h-8 sm:w-8" aria-hidden="true"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.08 0C5.5 0 .15 5.34.15 11.92c0 2.1.55 4.15 1.6 5.96L0 24l6.28-1.65a11.9 11.9 0 0 0 5.79 1.47h.01C18.66 23.82 24 18.48 24 11.9c0-3.18-1.24-6.17-3.48-8.42ZM12.08 21.8a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.73.98 1-3.64-.23-.37a9.85 9.85 0 0 1-1.52-5.26c0-5.46 4.45-9.9 9.9-9.9a9.83 9.83 0 0 1 7 2.9 9.84 9.84 0 0 1 2.9 7c0 5.45-4.44 9.88-9.91 9.88Zm5.43-7.4c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.93 1.17-.17.2-.34.22-.64.07-.3-.15-1.26-.46-2.4-1.47-.88-.78-1.47-1.75-1.64-2.05-.17-.3-.02-.46.13-.61.13-.13.3-.34.44-.5.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.2-.24-.58-.48-.5-.66-.51h-.56c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.87 1.22 3.07c.15.2 2.1 3.2 5.08 4.49.71.31 1.27.5 1.7.64.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.42.25-.7.25-1.29.17-1.42-.08-.12-.27-.2-.57-.35Z"/></svg>
         </a>
-        <div className="africa-nav-enter fixed bottom-4 left-1/2 z-50 flex max-w-[calc(100vw-24px)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/80 py-2 pl-4 pr-2 shadow-2xl backdrop-blur-xl sm:bottom-7 sm:gap-4 sm:pl-6">
+        <div className="africa-nav-enter fixed bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-3 right-20 z-50 flex max-w-[calc(100vw-6rem)] items-center justify-between gap-2 rounded-full border border-white/10 bg-black/85 py-2 pl-4 pr-2 shadow-2xl backdrop-blur-xl sm:bottom-7 sm:left-1/2 sm:right-auto sm:max-w-[calc(100vw-24px)] sm:-translate-x-1/2 sm:justify-start sm:gap-4 sm:pl-6">
           <div className="min-w-0">
             <span className="block text-[9px] uppercase tracking-[0.2em] text-white/50 sm:text-[10px] sm:tracking-widest">
               Capítulo {chapter.id}
