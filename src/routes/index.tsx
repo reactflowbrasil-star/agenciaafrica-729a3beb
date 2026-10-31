@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
-import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
+import MorphOrb from "@/components/ui/morph-orb";
 import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
 import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
@@ -285,7 +285,7 @@ function Index() {
     const crossfadeTimer = window.setTimeout(() => setPhase("logo"), 900);
     return () => window.clearTimeout(crossfadeTimer);
   }, [phase, wordmarkLogoVisible]);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
   const voiceTranscriptRef = useRef("");
@@ -535,11 +535,6 @@ function Index() {
   }, [phase, step]);
 
   useEffect(() => {
-    const el = inputRef.current;
-    if (el) { el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }
-  }, [value, step]);
-
-  useEffect(() => {
     if (step !== -1 || showIntro) return;
     const h = (e: KeyboardEvent) => e.key === "Enter" && go(0);
     window.addEventListener("keydown", h);
@@ -719,7 +714,14 @@ function Index() {
                 </>
               ) : (
                 <div className="mt-10">
-                  <OrbAnswerInput key={cur.id} value={value} onChange={setValue} onSubmit={(t) => submit(t)} inputRef={inputRef} />
+                  <MorphOrb
+                    key={cur.id}
+                    value={value}
+                    onChange={setValue}
+                    onSubmit={(text) => text}
+                    onComplete={submit}
+                    inputRef={inputRef}
+                  />
                   <div className="mt-6 flex flex-wrap items-center gap-3">
 
                     <button

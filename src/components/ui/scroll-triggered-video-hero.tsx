@@ -199,7 +199,7 @@ export default function CinematicScrol({
     });
   };
 
-  const chapter = chapters[navIndex];
+  const chapter = chapters[navIndex] ?? chapters[0]!;
 
   return (
     <section
