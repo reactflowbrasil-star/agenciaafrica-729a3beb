@@ -38,4 +38,15 @@ describe("briefing intro flow", () => {
 
     expect(screen.getByText("1 →")).toBeInTheDocument();
   });
+
+  it("renders the landing immediately when the user skips the briefing", async () => {
+    vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue(undefined);
+    render(<Intro />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Pular briefing/ }));
+    });
+
+    expect(screen.getByRole("heading", { name: /CRIATIVIDADE QUE MOVE NEGÓCIOS/ })).toBeInTheDocument();
+  });
 });

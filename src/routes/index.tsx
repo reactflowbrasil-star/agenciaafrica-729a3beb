@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
-const CinematicScrol = lazy(() => import("@/components/ui/scroll-triggered-video-hero"));
+import CinematicScrol from "@/components/ui/scroll-triggered-video-hero";
 import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const introLogo = "/africa-logo-official.png";
@@ -804,11 +804,7 @@ function Index() {
         aria-hidden={!landingVisible}
         className={`fixed inset-0 z-[80] overflow-y-auto bg-black transition-opacity duration-1000 ease-out ${landingVisible ? (landingFadeIn ? "opacity-100" : "opacity-0") : "pointer-events-none opacity-0"}`}
       >
-        {landingVisible && (
-          <Suspense fallback={<div className="min-h-dvh bg-black" aria-label="Carregando a landing page" />}>
-            <CinematicScrol videoUrls={heroVideoUrls} logoUrl={logo} />
-          </Suspense>
-        )}
+        {landingVisible && <CinematicScrol videoUrls={heroVideoUrls} logoUrl={logo} />}
       </div>
 </main>
   );
