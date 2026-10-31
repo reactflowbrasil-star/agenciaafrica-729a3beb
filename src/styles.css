@@ -247,8 +247,8 @@
   25% { transform: translate(calc(-50% - 4px),-50%); }
   75% { transform: translate(calc(-50% + 4px),-50%); }
 }
-.mo-root { position: relative; width: 100%; max-width: 42rem; height: 332px; margin: 0 auto; overflow: visible; pointer-events: none; isolation: isolate; color: var(--foreground); }
-.mo-root[data-show-reset="false"] { height: 280px; }
+.mo-root { position: relative; display: flex; width: 100%; max-width: 42rem; flex-direction: column; gap: .4rem; margin: 0 auto; overflow: visible; pointer-events: none; isolation: isolate; color: var(--foreground); }
+.mo-stage { position: relative; width: 100%; height: 244px; flex: none; overflow: hidden; overflow: clip; border-radius: 1.25rem; isolation: isolate; contain: paint; }
 .mo-bg { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at 50% 50%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 68%); transition: opacity .45s ease; }
 .mo-root:not([data-phase="idle"]) .mo-bg { opacity: .7; }
 .mo-halo { position: absolute; left: 50%; top: 50%; width: min(80%, 30rem); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--primary) 18%, transparent), transparent 68%); filter: blur(30px); opacity: var(--oCenter, 0); transform: translate(-50%,-50%); }
@@ -285,19 +285,20 @@
 .mo-a-dot { width: 7px; height: 7px; border-radius: 50%; background: #64dd9c; box-shadow: 0 0 10px #64dd9c; transform: scale(var(--dotS,1)); }
 .mo-a-body { display: -webkit-box; overflow: hidden; margin: 0; color: var(--foreground); font-size: clamp(.8rem, 2vw, 1rem); line-height: 1.5; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .mo-w { opacity: 0; filter: blur(4px); transform: translateY(4px); }
-.mo-status { position: absolute; z-index: 5; top: calc(50% + 120px); left: 50%; display: flex; min-height: 1.5rem; max-width: 100%; justify-content: center; opacity: var(--sOp, 0); transform: translate(-50%,var(--sTy,6px)); white-space: nowrap; }
+.mo-status { position: relative; z-index: 5; display: flex; min-height: 1.5rem; max-width: 100%; flex: none; justify-content: center; opacity: var(--sOp, 0); transform: translateY(var(--sTy,6px)); white-space: nowrap; }
 .mo-lab { display: inline-flex; align-items: baseline; gap: .3rem; color: var(--muted-foreground); font-size: .9rem; font-weight: 300; letter-spacing: .025em; }
 .mo-lab-done { color: #64dd9c; font-weight: 700; }
 .mo-dots { display: inline-flex; gap: 3px; }
 .mo-dots i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; animation: mo-dot 1.2s infinite; }
 .mo-dots i:nth-child(2) { animation-delay: .15s; }.mo-dots i:nth-child(3) { animation-delay: .3s; }
 .mo-lab-in { animation: mo-in .35s cubic-bezier(.22,1,.36,1) both; }.mo-lab-out { position: absolute; animation: mo-out .3s ease both; }
-.mo-reset { position: absolute; z-index: 6; top: calc(50% + 150px); left: 50%; padding: .5rem 1rem; transform: translateX(-50%); border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent); border-radius: 999px; background: color-mix(in oklab, var(--background) 70%, transparent); color: var(--foreground); font-size: .8rem; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.mo-reset { position: relative; z-index: 6; align-self: center; padding: .5rem 1rem; border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent); border-radius: 999px; background: color-mix(in oklab, var(--background) 70%, transparent); color: var(--foreground); font-size: .8rem; opacity: 0; pointer-events: none; transition: opacity .25s; }
 .mo-root[data-phase="answered"] .mo-reset { opacity: 1; pointer-events: auto; }
 .mo-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
 .mo-debug { position: absolute; top: 1rem; right: 1rem; display: flex; align-items: center; gap: .75rem; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--background); color: var(--foreground); pointer-events: auto; }
 .mo-chip { color: var(--primary); font-size: .75rem; }.mo-debug label { display: flex; align-items: center; gap: .5rem; font-size: .75rem; }
 .mo-root:not([data-phase="idle"]) .mo-input { pointer-events: none; }
-@media (max-width: 640px) { .mo-root { height: 322px; }.mo-root[data-show-reset="false"] { height: 270px; }.mo-input { gap: .5rem; padding: .55rem .55rem .55rem .85rem; }.mo-spark { width: 20px; height: 20px; }.mo-field { font-size: 1rem; }.mo-send { width: 40px; height: 40px; }.mo-status { top: calc(50% + 110px); }.mo-reset { top: calc(50% + 146px); }.mo-answer { border-radius: 15px; } }
-@media (max-width: 380px) { .mo-root[data-show-reset="false"] { height: 254px; }.mo-root[data-show-reset="true"] { height: 306px; }.mo-spark { display: none; }.mo-field { font-size: .95rem; }.mo-status { font-size: .8rem; } }
+.mo-root[data-show-reset="false"] .mo-reset { display: none; }
+@media (max-width: 640px) { .mo-stage { height: 224px; border-radius: 1rem; }.mo-input { gap: .5rem; padding: .55rem .55rem .55rem .85rem; }.mo-spark { width: 20px; height: 20px; }.mo-field { font-size: 1rem; }.mo-send { width: 40px; height: 40px; }.mo-answer { border-radius: 15px; } }
+@media (max-width: 380px) { .mo-stage { height: 214px; }.mo-spark { display: none; }.mo-field { font-size: .95rem; }.mo-status { font-size: .8rem; } }
 @media (prefers-reduced-motion: reduce) { .mo-aurora i,.mo-dots i { animation: none; }.mo-input { transition: opacity .2s ease; } }

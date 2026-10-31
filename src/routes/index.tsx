@@ -338,7 +338,6 @@ function Index() {
   };
 
   const go = (next: number) => {
-    setMorphBusy(false);
     changingStepRef.current = true;
     voiceModeRef.current = false;
     voiceRecognitionRef.current?.stop();
@@ -347,6 +346,7 @@ function Index() {
       setStep(next);
       setValue(QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "");
       voiceBaseValueRef.current = QUESTIONS[next] ? answers[QUESTIONS[next].id] ?? "" : "";
+      setMorphBusy(false);
       changingStepRef.current = false;
       setLeaving(false);
     }, 450);
@@ -657,7 +657,7 @@ function Index() {
         </div>
       </header>
 
-      <section key={step} className={`relative z-10 flex min-h-dvh items-center px-6 py-28 sm:px-16 ${leaving ? "step-out" : "step-in"}`}>
+      <section key={step} className={`relative z-10 flex min-h-dvh items-center px-6 pb-36 pt-40 sm:px-16 sm:pb-32 sm:pt-44 ${leaving ? "step-out" : "step-in"}`}>
         <div className="mx-auto w-full max-w-3xl">
           {step === -1 && (
             <div>
@@ -724,7 +724,7 @@ function Index() {
                     onComplete={submit}
                     inputRef={inputRef}
                     showReset={false}
-                    onPhaseChange={(currentPhase) => setMorphBusy(currentPhase !== "idle" && currentPhase !== "answered" && currentPhase !== "reset")}
+                    onPhaseChange={(currentPhase) => setMorphBusy(currentPhase !== "idle")}
                   />
                   {!morphBusy && <div className="mt-5 flex flex-wrap items-center gap-3">
 

@@ -34,4 +34,17 @@ describe("briefing MorphOrb", () => {
     expect(onSubmit).toHaveBeenCalledWith("Meu briefing");
     expect(onComplete).toHaveBeenCalledWith("Meu briefing");
   });
+
+  it("keeps all moving elements inside the clipped animation stage", () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    render(<MorphOrb showReset={false} />);
+
+    const stage = screen.getByTestId("mo-stage");
+    const status = document.querySelector<HTMLElement>(".mo-status");
+    expect(stage).toContainElement(screen.getByRole("textbox", { name: "Sua resposta" }));
+    expect(stage).toContainElement(document.querySelector<HTMLCanvasElement>(".mo-orb"));
+    expect(stage).toContainElement(document.querySelector<HTMLElement>(".mo-answer"));
+    expect(stage).not.toContainElement(status);
+    expect(screen.queryByRole("button", { name: "Nova resposta" })).not.toBeInTheDocument();
+  });
 });

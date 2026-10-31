@@ -32,7 +32,7 @@ const CARD_H = 108;
 const FLY_D = 138;
 const pillW = (containerWidth = window.innerWidth) => Math.min(560, containerWidth - 16);
 const cardW = (containerWidth = window.innerWidth) => Math.min(320, containerWidth - 16);
-const homeDy = () => Math.min(72, Math.max(48, window.innerHeight * 0.09));
+const homeDy = () => Math.min(48, Math.max(36, window.innerWidth * 0.07));
 
 /* ───────────────────────── math + easing ───────────────────────── */
 type Ease = (t: number) => number;
@@ -970,66 +970,69 @@ export default function MorphOrb(props: MorphOrbProps) {
 
   return (
     <div className="mo-root" data-phase={phase} data-show-reset={props.showReset !== false} ref={rootRef}>
-      <div className="mo-bg" aria-hidden="true" />
-      <div className="mo-halo" aria-hidden="true" />
+      <div className="mo-stage" data-testid="mo-stage">
+        <div className="mo-bg" aria-hidden="true" />
+        <div className="mo-halo" aria-hidden="true" />
 
-      <div className="mo-mover" ref={moverRef}>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <span key={i} className="mo-trail" aria-hidden="true" ref={(el) => { ghostRefs.current[i] = el; }} />
-        ))}
+        <div className="mo-mover" ref={moverRef}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <span key={i} className="mo-trail" aria-hidden="true" ref={(el) => { ghostRefs.current[i] = el; }} />
+          ))}
 
-        <div className="mo-actor" ref={actorRef}>
-          <div className="mo-underglow" aria-hidden="true" />
-          <div className="mo-halo-green" aria-hidden="true" />
-          <div className="mo-surface" aria-hidden="true">
-            <div className="mo-aurora"><i /><i /><i /><i /></div>
-          </div>
-          <div className="mo-ball" aria-hidden="true" />
-          <div className="mo-green" aria-hidden="true" />
-          <div className="mo-card" aria-hidden="true" />
-          <div className="mo-ring" aria-hidden="true" />
-
-          <form className="mo-input" ref={formRef} onSubmit={onFormSubmit} autoComplete="off">
-            <svg className="mo-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M10 3.5l1.7 4.8 4.8 1.7-4.8 1.7L10 16.5l-1.7-4.8L3.5 10l4.8-1.7L10 3.5z" />
-              <path d="M18 14.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z" />
-            </svg>
-            <input
-              ref={inputRef}
-              className="mo-field"
-              type="text"
-              value={value}
-              maxLength={200}
-              placeholder={COPY.placeholder}
-              aria-label="Sua resposta"
-              spellCheck={false}
-              onChange={onChange}
-              onKeyDown={onKeyDown}
-            />
-            <button type="submit" className="mo-send" aria-label={COPY.send} data-ready={ready ? "" : undefined}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M12 19V5" />
-                <path d="M5.5 11.5L12 5l6.5 6.5" />
-              </svg>
-            </button>
-          </form>
-
-          <canvas className="mo-orb" ref={canvasRef} aria-hidden="true" />
-          <div className="mo-pulse" ref={pulseRef} aria-hidden="true" />
-
-          <div className="mo-answer" ref={answerRef} tabIndex={-1} role="group" aria-label={COPY.answerTitle}>
-            <div className="mo-a-head">
-              <i className="mo-a-dot" aria-hidden="true" />
-              <span>{COPY.answerTitle}</span>
+          <div className="mo-actor" ref={actorRef}>
+            <div className="mo-underglow" aria-hidden="true" />
+            <div className="mo-halo-green" aria-hidden="true" />
+            <div className="mo-surface" aria-hidden="true">
+              <div className="mo-aurora"><i /><i /><i /><i /></div>
             </div>
-            <p className="mo-a-body" ref={bodyRef}>
-              {words.map((w, i) => (
-                <React.Fragment key={i}>
-                  <span className="mo-w">{w}</span>{" "}
-                </React.Fragment>
-              ))}
-            </p>
+            <div className="mo-ball" aria-hidden="true" />
+            <div className="mo-green" aria-hidden="true" />
+            <div className="mo-card" aria-hidden="true" />
+            <div className="mo-ring" aria-hidden="true" />
+
+            <form className="mo-input" ref={formRef} onSubmit={onFormSubmit} autoComplete="off">
+              <svg className="mo-spark" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M10 3.5l1.7 4.8 4.8 1.7-4.8 1.7L10 16.5l-1.7-4.8L3.5 10l4.8-1.7L10 3.5z" />
+                <path d="M18 14.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z" />
+              </svg>
+              <input
+                ref={inputRef}
+                className="mo-field"
+                type="text"
+                value={value}
+                maxLength={200}
+                placeholder={COPY.placeholder}
+                aria-label="Sua resposta"
+                spellCheck={false}
+                onChange={onChange}
+                onKeyDown={onKeyDown}
+              />
+              <button type="submit" className="mo-send" aria-label={COPY.send} data-ready={ready ? "" : undefined}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 19V5" />
+                  <path d="M5.5 11.5L12 5l6.5 6.5" />
+                </svg>
+              </button>
+            </form>
+
+            <canvas className="mo-orb" ref={canvasRef} aria-hidden="true" />
+            <div className="mo-pulse" ref={pulseRef} aria-hidden="true" />
+
+            <div className="mo-answer" ref={answerRef} tabIndex={-1} role="group" aria-label={COPY.answerTitle}>
+              <div className="mo-a-head">
+                <i className="mo-a-dot" aria-hidden="true" />
+                <span>{COPY.answerTitle}</span>
+              </div>
+              <p className="mo-a-body" ref={bodyRef}>
+                {words.map((w, i) => (
+                  <React.Fragment key={i}>
+                    <span className="mo-w">{w}</span>{" "}
+                  </React.Fragment>
+                ))}
+              </p>
+            </div>
           </div>
+
         </div>
       </div>
 
