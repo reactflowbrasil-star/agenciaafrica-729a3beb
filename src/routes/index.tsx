@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 const CinematicScrol = lazy(() => import("@/components/ui/scroll-triggered-video-hero"));
+import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const introLogo = "/africa-logo-official.png";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -229,6 +230,7 @@ function Index() {
     setLandingVisible(true);
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => setLandingFadeIn(true)));
   };
+  const finishWordmark = useCallback(() => setPhase("logo"), []);
 
   // One tap on "Iniciar" starts both soundtracks together: the looping
   // background track and the voice-over. Browsers only allow audible playback
@@ -261,11 +263,6 @@ function Index() {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
     };
-  }, [phase]);
-  useEffect(() => {
-    if (phase !== "writing") return;
-    const timer = window.setTimeout(() => setPhase("logo"), 2400);
-    return () => window.clearTimeout(timer);
   }, [phase]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
@@ -563,7 +560,7 @@ function Index() {
 
   return (
     <main className={`relative min-h-dvh w-full bg-background font-sans text-foreground ${landingVisible ? "overflow-visible" : "overflow-hidden"}`}>
-      <style>{`@keyframes africaTypewriterCaret { 50% { opacity: 0; } } @keyframes africaWordmarkWrite { from { width: 0; } to { width: 6.2ch; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } .africa-wordmark-write { animation: africaWordmarkWrite 2.4s steps(6, end) forwards; } @media (prefers-reduced-motion: reduce) { .africa-typewriter-caret { animation: none; } .africa-wordmark-write { width: 6.2ch; border-color: transparent; animation: none; } }`}</style>
+      <style>{`@keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-typewriter-caret { animation: none; } }`}</style>
       <SiteVideoBackdrop
         urls={phase === "briefing" ? heroVideoUrls : introVideoUrls}
         active={phase === "narrating" || phase === "logo" || (phase === "briefing" && !landingVisible)}
@@ -576,10 +573,20 @@ function Index() {
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse 90% 55% at 50% 50%, rgba(0,0,0,0.26), transparent 72%)" }} />
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("writing")} />}
       {phase === "writing" && (
-        <div aria-label="AFRICA" role="img" className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 px-4 text-white">
-          <span className="africa-wordmark-write overflow-hidden whitespace-nowrap border-r-2 border-white pr-3 font-display text-[clamp(3rem,16vw,10rem)] font-semibold leading-none tracking-[0.06em]">
-            AFRICA
-          </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 px-4 text-white">
+          <DrawLineText
+            role="img"
+            aria-label="AFRICA"
+            text="AFRICA"
+            className="w-[min(88vw,1024px)] font-display font-semibold"
+            fontSize={160}
+            strokeWidth={1.7}
+            letterSpacing={4}
+            wordSpacing={18}
+            color="#ffffff"
+            oneByOne={false}
+            onDrawComplete={finishWordmark}
+          />
         </div>
       )}
       {phase === "logo" && (
