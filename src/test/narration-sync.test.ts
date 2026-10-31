@@ -20,4 +20,10 @@ describe("Narration closing sentence timing", () => {
   it("does not reveal the final phrase before its recorded start", () => {
     expect(getNarrationFrame(29.79).fullText).toBe("porque quem respeita a propaganda honra a sua história.");
   });
+
+  it("keeps the final word ahead of the end of a shorter encoded narration", () => {
+    const mediaDuration = 29.4;
+    const frame = getNarrationFrame(mediaDuration * 0.999, mediaDuration);
+    expect(frame.fullText.slice(0, frame.typed)).toBe("Muito prazer, somos a agência África.");
+  });
 });

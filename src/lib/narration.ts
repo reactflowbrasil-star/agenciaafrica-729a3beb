@@ -1,9 +1,17 @@
 /* Narration phrases; each word carries its start time (seconds) in the voice-over audio. */
 // Reveal each word within its actual slot, including very short final words.
-export function getNarrationFrame(time: number) {
+export function getNarrationFrame(time: number, mediaDuration?: number) {
+  // The word cues were authored against the original narration file. Let the
+  // loaded media duration be the master endpoint so a slightly different
+  // encoded/served audio duration cannot leave the final words trailing behind.
+  const lastPhrase = NARRATION[NARRATION.length - 1];
+  const lastWordStart = lastPhrase?.[lastPhrase.length - 1]?.[1] ?? 0;
+  const timelineEnd = lastWordStart + 0.25;
+  const hasDuration = mediaDuration !== undefined && Number.isFinite(mediaDuration) && mediaDuration > 0;
+  const cueTime = hasDuration ? time * (timelineEnd / mediaDuration) : time;
   let phraseIndex = -1;
   NARRATION.forEach((phrase, index) => {
-    if ((phrase[0]?.[1] ?? Infinity) <= time) phraseIndex = index;
+    if ((phrase[0]?.[1] ?? Infinity) <= cueTime) phraseIndex = index;
   });
   const phrase = NARRATION[phraseIndex];
   if (!phrase) return { fullText: "", typed: 0 };
@@ -15,8 +23,8 @@ export function getNarrationFrame(time: number) {
     // Never impose a minimum duration: the closing sentence has 30ms slots.
     // Finish slightly before the next word, rather than trailing the voice.
     const duration = Math.max(0, (next - start) * 0.98);
-    if (time >= start) {
-      const progress = duration > 0 ? Math.min(1, (time - start) / duration) : 1;
+    if (cueTime >= start) {
+      const progress = duration > 0 ? Math.min(1, (cueTime - start) / duration) : 1;
       typed = offset + Math.ceil(word.length * progress);
     }
     offset += word.length + 1;

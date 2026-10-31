@@ -941,7 +941,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
         time = lastAudio + Math.min(0.08, (now - lastWall) / 1000) * audio.playbackRate;
       }
       // Final words can be only 30ms apart: update on every animation frame.
-      const frame = getNarrationFrame(time);
+      const frame = getNarrationFrame(time, Number.isFinite(audio.duration) ? audio.duration : undefined);
       const frameKey = frame.fullText + "::" + frame.typed;
       if (frameKey !== lastFrameKey) {
         lastFrameKey = frameKey;
