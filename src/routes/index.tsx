@@ -583,7 +583,7 @@ function Index() {
       )}
       {phase === "start" && (
         <div className={`fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center transition-opacity duration-700 sm:gap-10 ${introFading ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-          <img src={introLogo} alt="Agência AFRICA" fetchPriority="high" decoding="async" className="h-[min(52svh,480px)] w-auto max-w-[72vw] object-contain" />
+          <img src={introLogo} alt="Agência AFRICA" fetchPriority="high" decoding="async" className="h-[min(68svh,620px)] w-auto max-w-[88vw] object-contain" />
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <Button
               type="button"
