@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
 const CinematicScrol = lazy(() => import("@/components/ui/scroll-triggered-video-hero"));
-import { DrawLineText } from "@/components/ui/draw-line-text";
 const logo = "https://agenciaafrica.lovable.app/__l5e/assets-v1/42641b7a-09e8-4bc3-996b-9634277af170/africa-logo.png";
 const introLogo = "/africa-logo-official.png";
 const backgroundTrack = "https://sexflow.com.br/sexflow/trilha.mp3";
@@ -43,7 +42,7 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
     }
 
     let transitionTimer = 0;
-    let cycle: number | undefined;
+    const cycle = window.setInterval(() => begin((current.current + 1) % urls.length), 8000);
     const begin = (index: number) => {
       if (incoming.current !== null || index === current.current) return;
       const next = videos.current[index];
@@ -72,10 +71,8 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
 
     const first = videos.current[current.current];
     if (first && first.paused) void first.play().catch(() => {});
-    cycle = window.setInterval(() => begin((current.current + 1) % urls.length), 8000);
-
     return () => {
-      if (cycle !== undefined) window.clearInterval(cycle);
+      window.clearInterval(cycle);
       window.clearTimeout(transitionTimer);
       beginRef.current = () => {};
       pending.current = null;
@@ -206,19 +203,6 @@ function Index() {
   const [step, setStep] = useState(-2);
   const [phase, setPhase] = useState<Phase>("start");
   const [introFading, setIntroFading] = useState(false);
-  const [introTextVisible, setIntroTextVisible] = useState(true);
-  const [introLogoVisible, setIntroLogoVisible] = useState(false);
-  const introLogoRevealTimerRef = useRef<number | null>(null);
-  const revealIntroLogo = useCallback(() => {
-    setIntroTextVisible(false);
-    if (introLogoRevealTimerRef.current !== null) {
-      window.clearTimeout(introLogoRevealTimerRef.current);
-    }
-    introLogoRevealTimerRef.current = window.setTimeout(() => {
-      setIntroLogoVisible(true);
-      introLogoRevealTimerRef.current = null;
-    }, 700);
-  }, []);
   const [leaving, setLeaving] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
@@ -266,8 +250,6 @@ function Index() {
 
   useEffect(() => {
     if (phase !== "logo") return;
-    setIntroTextVisible(true);
-    setIntroLogoVisible(false);
     const fadeTimer = window.setTimeout(() => setIntroFading(true), 9500);
     const finishTimer = window.setTimeout(() => {
       const music = musicRef.current;
@@ -276,10 +258,6 @@ function Index() {
       setStep(0);
     }, 10500);
     return () => {
-      if (introLogoRevealTimerRef.current !== null) {
-        window.clearTimeout(introLogoRevealTimerRef.current);
-        introLogoRevealTimerRef.current = null;
-      }
       window.clearTimeout(fadeTimer);
       window.clearTimeout(finishTimer);
     };
@@ -581,7 +559,10 @@ function Index() {
   return (
     <main className={`relative min-h-dvh w-full bg-background font-sans text-foreground ${landingVisible ? "overflow-visible" : "overflow-hidden"}`}>
       <style>{`@keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-typewriter-caret { animation: none; } }`}</style>
-      <SiteVideoBackdrop urls={introVideoUrls} active={phase === "narrating" || phase === "logo"} />
+      <SiteVideoBackdrop
+        urls={phase === "briefing" ? heroVideoUrls : introVideoUrls}
+        active={phase === "narrating" || phase === "logo" || (phase === "briefing" && !landingVisible)}
+      />
       <audio ref={musicRef} src={backgroundTrack} loop preload="none" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <audio ref={narrationRef} src={narrationUrl} preload="auto" />
       <audio ref={questionNarrationRef} preload="auto" />
@@ -591,34 +572,18 @@ function Index() {
       {phase === "narrating" && <Narration audioRef={narrationRef} onDone={() => setPhase("logo")} />}
       {phase === "logo" && (
         <div aria-hidden="true" className={`fixed inset-0 z-50 flex items-center justify-center bg-black/10 transition-opacity duration-1000 ease-in-out ${introFading ? "opacity-0" : "opacity-100"}`}>
-          <div className="relative grid w-[min(88vw,820px)] place-items-center">
-            <DrawLineText
-              role="img"
-              aria-label="AFRICA"
-              text="AFRICA"
-              className={`font-display font-semibold transition-opacity duration-700 ease-in-out ${introTextVisible ? "opacity-100" : "opacity-0"}`}
-              fontSize={160}
-              strokeWidth={1.7}
-              letterSpacing={4}
-              wordSpacing={18}
-              color="#ffffff"
-              onDrawComplete={revealIntroLogo}
-            />
-            <img
-              src={introLogo}
-              alt="Logo oficial da Agência AFRICA"
-              aria-hidden="true"
-              fetchPriority="high"
-              decoding="async"
-              className={`absolute left-1/2 top-1/2 aspect-square -translate-x-1/2 -translate-y-1/2 object-cover transition-opacity duration-1000 ease-in-out ${introLogoVisible ? "opacity-100" : "opacity-0"}`}
-              style={{ width: "min(82vw, 70svh, 560px)", objectPosition: "50% 52%" }}
-            />
-          </div>
+          <img
+            src={introLogo}
+            alt="Logo oficial da Agência AFRICA"
+            fetchPriority="high"
+            decoding="async"
+            className="h-[min(76svh,680px)] w-auto max-w-[82vw] object-contain"
+          />
         </div>
       )}
       {phase === "start" && (
         <div className={`fixed inset-0 z-[70] flex flex-col items-center justify-center gap-8 bg-background/65 px-5 text-center transition-opacity duration-700 sm:gap-10 ${introFading ? "pointer-events-none opacity-0" : "opacity-100"}`}>
-          <div className="w-[min(72vw,420px)]"><DrawLineText role="img" aria-label="AFRICA" text="AFRICA" className="font-display font-semibold" fontSize={112} strokeWidth={1.5} letterSpacing={3} wordSpacing={14} color="#ffffff" /></div>
+          <img src={introLogo} alt="Agência AFRICA" fetchPriority="high" decoding="async" className="h-[min(52svh,480px)] w-auto max-w-[72vw] object-contain" />
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
             <Button
               type="button"
