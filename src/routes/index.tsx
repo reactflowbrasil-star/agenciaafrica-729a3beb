@@ -215,6 +215,7 @@ function Index() {
   const stepRef = useRef(step);
   const changingStepRef = useRef(false);
   const [voiceStatus, setVoiceStatus] = useState("");
+  const [morphBusy, setMorphBusy] = useState(false);
   const [landingVisible, setLandingVisible] = useState(false);
   const [landingFadeIn, setLandingFadeIn] = useState(false);
   const landingTimerRef = useRef<number | null>(null);
@@ -337,6 +338,7 @@ function Index() {
   };
 
   const go = (next: number) => {
+    setMorphBusy(false);
     changingStepRef.current = true;
     voiceModeRef.current = false;
     voiceRecognitionRef.current?.stop();
@@ -721,8 +723,10 @@ function Index() {
                     onSubmit={(text) => text}
                     onComplete={submit}
                     inputRef={inputRef}
+                    showReset={false}
+                    onPhaseChange={(currentPhase) => setMorphBusy(currentPhase !== "idle" && currentPhase !== "answered" && currentPhase !== "reset")}
                   />
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                  {!morphBusy && <div className="mt-5 flex flex-wrap items-center gap-3">
 
                     <button
                       type="button"
@@ -741,14 +745,14 @@ function Index() {
                     <span className="hidden font-light text-sm text-muted-foreground sm:inline">
                       Enter ↵ {cur.long && "· Shift+Enter nova linha"}
                     </span>
-                  </div>
-                  <p className="mt-3 min-h-5 font-light text-xs text-muted-foreground" aria-live="polite">
+                  </div>}
+                  {!morphBusy && <p className="mt-3 min-h-5 font-light text-xs text-muted-foreground" aria-live="polite">
                     {voiceStatus || (voiceMode ? "Segure o botão para falar; ao soltar, a resposta será preenchida." : "Segure o botão para falar e solte para preencher a resposta.")}
-                  </p>
+                  </p>}
                 </div>
               )}
 
-              {step > 0 && (
+              {step > 0 && !morphBusy && (
                 <button onClick={() => go(step - 1)} className="mt-10 font-light text-sm text-muted-foreground transition hover:text-foreground">
                   ← Voltar
                 </button>

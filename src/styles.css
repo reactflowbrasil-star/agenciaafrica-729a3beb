@@ -247,12 +247,13 @@
   25% { transform: translate(calc(-50% - 4px),-50%); }
   75% { transform: translate(calc(-50% + 4px),-50%); }
 }
-.mo-root { position: fixed; inset: 0; z-index: 40; overflow: hidden; pointer-events: none; isolation: isolate; color: var(--foreground); }
-.mo-bg { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at 50% 46%, color-mix(in oklab, var(--background) 28%, transparent), transparent 62%); transition: opacity .45s ease; }
-.mo-root:not([data-phase="idle"]) .mo-bg { opacity: .45; }
-.mo-halo { position: absolute; left: 50%; top: 46%; width: min(80vw, 34rem); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--primary) 18%, transparent), transparent 68%); filter: blur(30px); opacity: var(--oCenter, 0); transform: translate(-50%,-50%); }
-.mo-mover { position: absolute; left: 50%; top: 46%; width: 0; height: 0; pointer-events: none; will-change: transform; }
-.mo-actor { position: relative; width: var(--w, min(560px, calc(100vw - 32px))); height: var(--h, 60px); border-radius: var(--r, 999px); transform: translate(-50%,-50%); transform-origin: center; }
+.mo-root { position: relative; width: 100%; max-width: 42rem; height: 332px; margin: 0 auto; overflow: visible; pointer-events: none; isolation: isolate; color: var(--foreground); }
+.mo-root[data-show-reset="false"] { height: 280px; }
+.mo-bg { position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse at 50% 50%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 68%); transition: opacity .45s ease; }
+.mo-root:not([data-phase="idle"]) .mo-bg { opacity: .7; }
+.mo-halo { position: absolute; left: 50%; top: 50%; width: min(80%, 30rem); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--primary) 18%, transparent), transparent 68%); filter: blur(30px); opacity: var(--oCenter, 0); transform: translate(-50%,-50%); }
+.mo-mover { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; will-change: transform; }
+.mo-actor { position: relative; width: var(--w, min(560px, calc(100% - 16px))); height: var(--h, 60px); border-radius: var(--r, 999px); transform: translate(-50%,-50%); transform-origin: center; }
 .mo-actor[data-shake] { animation: mo-shake .26s ease; border-color: var(--destructive); }
 .mo-trail { position: absolute; left: 0; top: 0; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, white 90%, var(--primary)), var(--primary) 58%, transparent 76%); pointer-events: none; }
 .mo-underglow,.mo-halo-green,.mo-surface,.mo-ball,.mo-green,.mo-card,.mo-ring { position: absolute; pointer-events: none; }
@@ -277,25 +278,26 @@
 .mo-send svg { width: 20px; height: 20px; }
 .mo-send[data-ready] { background: var(--primary); color: var(--primary-foreground); }
 .mo-send[data-ready]:hover { transform: scale(1.08); }
-.mo-orb { position: absolute; z-index: 3; left: 50%; top: 50%; width: 220px; height: 220px; max-width: 80vw; max-height: 80vw; opacity: 1; transform: translate(-50%,-50%); color: var(--primary); pointer-events: none; }
+.mo-orb { position: absolute; z-index: 3; left: 50%; top: 50%; width: min(220px, 62vw); height: min(220px, 62vw); opacity: 1; transform: translate(-50%,-50%); color: var(--primary); pointer-events: none; }
 .mo-pulse { position: absolute; z-index: 2; left: 50%; top: 50%; width: 130px; height: 130px; margin: -65px; border: 1px solid color-mix(in oklab, #6cf0a8 65%, transparent); border-radius: 50%; box-shadow: 0 0 38px color-mix(in oklab, #54e99c 35%, transparent); pointer-events: none; }
-.mo-answer { position: absolute; z-index: 4; inset: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding: 1.15rem 1.25rem; border-radius: 20px; background: color-mix(in oklab, var(--background) 88%, #17221b); opacity: var(--hOp, 0); pointer-events: none; }
+.mo-answer { position: absolute; z-index: 4; inset: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding: 1rem clamp(1rem, 4vw, 1.5rem); border-radius: 18px; background: color-mix(in oklab, var(--background) 88%, #17221b); opacity: var(--hOp, 0); pointer-events: none; }
 .mo-a-head { display: flex; align-items: center; gap: .55rem; margin-bottom: .55rem; color: var(--primary); font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .mo-a-dot { width: 7px; height: 7px; border-radius: 50%; background: #64dd9c; box-shadow: 0 0 10px #64dd9c; transform: scale(var(--dotS,1)); }
 .mo-a-body { display: -webkit-box; overflow: hidden; margin: 0; color: var(--foreground); font-size: clamp(.8rem, 2vw, 1rem); line-height: 1.5; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .mo-w { opacity: 0; filter: blur(4px); transform: translateY(4px); }
-.mo-status { position: absolute; top: calc(46% + 92px); left: 50%; display: flex; min-height: 1.5rem; justify-content: center; opacity: var(--sOp, 0); transform: translate(-50%,var(--sTy,6px)); white-space: nowrap; }
+.mo-status { position: absolute; z-index: 5; top: calc(50% + 120px); left: 50%; display: flex; min-height: 1.5rem; max-width: 100%; justify-content: center; opacity: var(--sOp, 0); transform: translate(-50%,var(--sTy,6px)); white-space: nowrap; }
 .mo-lab { display: inline-flex; align-items: baseline; gap: .3rem; color: var(--muted-foreground); font-size: .9rem; font-weight: 300; letter-spacing: .025em; }
 .mo-lab-done { color: #64dd9c; font-weight: 700; }
 .mo-dots { display: inline-flex; gap: 3px; }
 .mo-dots i { width: 3px; height: 3px; border-radius: 50%; background: currentColor; animation: mo-dot 1.2s infinite; }
 .mo-dots i:nth-child(2) { animation-delay: .15s; }.mo-dots i:nth-child(3) { animation-delay: .3s; }
 .mo-lab-in { animation: mo-in .35s cubic-bezier(.22,1,.36,1) both; }.mo-lab-out { position: absolute; animation: mo-out .3s ease both; }
-.mo-reset { position: absolute; top: calc(46% + 132px); left: 50%; padding: .5rem 1rem; transform: translateX(-50%); border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent); border-radius: 999px; background: color-mix(in oklab, var(--background) 70%, transparent); color: var(--foreground); font-size: .8rem; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.mo-reset { position: absolute; z-index: 6; top: calc(50% + 150px); left: 50%; padding: .5rem 1rem; transform: translateX(-50%); border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent); border-radius: 999px; background: color-mix(in oklab, var(--background) 70%, transparent); color: var(--foreground); font-size: .8rem; opacity: 0; pointer-events: none; transition: opacity .25s; }
 .mo-root[data-phase="answered"] .mo-reset { opacity: 1; pointer-events: auto; }
 .mo-live { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
 .mo-debug { position: absolute; top: 1rem; right: 1rem; display: flex; align-items: center; gap: .75rem; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: .75rem; background: var(--background); color: var(--foreground); pointer-events: auto; }
 .mo-chip { color: var(--primary); font-size: .75rem; }.mo-debug label { display: flex; align-items: center; gap: .5rem; font-size: .75rem; }
 .mo-root:not([data-phase="idle"]) .mo-input { pointer-events: none; }
-@media (max-width: 480px) { .mo-field { font-size: 1rem; }.mo-status { top: calc(46% + 80px); }.mo-reset { top: calc(46% + 120px); } }
+@media (max-width: 640px) { .mo-root { height: 322px; }.mo-root[data-show-reset="false"] { height: 270px; }.mo-input { gap: .5rem; padding: .55rem .55rem .55rem .85rem; }.mo-spark { width: 20px; height: 20px; }.mo-field { font-size: 1rem; }.mo-send { width: 40px; height: 40px; }.mo-status { top: calc(50% + 110px); }.mo-reset { top: calc(50% + 146px); }.mo-answer { border-radius: 15px; } }
+@media (max-width: 380px) { .mo-root[data-show-reset="false"] { height: 254px; }.mo-root[data-show-reset="true"] { height: 306px; }.mo-spark { display: none; }.mo-field { font-size: .95rem; }.mo-status { font-size: .8rem; } }
 @media (prefers-reduced-motion: reduce) { .mo-aurora i,.mo-dots i { animation: none; }.mo-input { transition: opacity .2s ease; } }

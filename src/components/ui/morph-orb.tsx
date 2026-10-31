@@ -12,7 +12,7 @@ const COPY = {
   send: "Enviar resposta",
 };
 
-type Phase = "idle" | "launch" | "assemble" | "think" | "resolve" | "condense" | "unfold" | "answered" | "reset";
+export type Phase = "idle" | "launch" | "assemble" | "think" | "resolve" | "condense" | "unfold" | "answered" | "reset";
 
 export interface MorphOrbProps {
   onSubmit?: (text: string) => Promise<string> | string;
@@ -22,15 +22,17 @@ export interface MorphOrbProps {
   inputRef?: React.RefObject<HTMLInputElement | null>;
   minThinkMs?: number;
   speed?: number;
+  showReset?: boolean;
+  onPhaseChange?: (phase: Phase) => void;
 }
 
 /* ─────────────────────────── geometry ─────────────────────────── */
 const PILL_H = 60, BALL_SMALL = 60, ORB_D = 132, ORB_R = 66, CANVAS = 220;
 const CARD_H = 108;
 const FLY_D = 138;
-const pillW = () => Math.min(560, window.innerWidth - 32);
-const cardW = () => Math.min(320, window.innerWidth - 32);
-const homeDy = () => window.innerHeight * 0.54 - 96; // pill centre is 96px above the viewport bottom; stage centre is at top:46%
+const pillW = (containerWidth = window.innerWidth) => Math.min(560, containerWidth - 16);
+const cardW = (containerWidth = window.innerWidth) => Math.min(320, containerWidth - 16);
+const homeDy = () => Math.min(72, Math.max(48, window.innerHeight * 0.09));
 
 /* ───────────────────────── math + easing ───────────────────────── */
 type Ease = (t: number) => number;
@@ -463,7 +465,8 @@ function sampleAt(h: Sample[], t: number, out: Sample) {
 function createRuntime(env: Env): Runtime {
   const { actor, mover, root, status, pulse, ghosts, form } = env;
   const life = new AbortController();
-  const geo: Geo = { pw: pillW(), cw: cardW(), H: homeDy(), dir: -1 };
+  const rootWidth = root.clientWidth || window.innerWidth;
+  const geo: Geo = { pw: pillW(rootWidth), cw: cardW(rootWidth), H: homeDy(), dir: -1 };
   const orb = createOrb(env.canvas, env.getSpeed, env.isReduced);
   const vals: Record<string, number> = {};
   const dirty = new Set<string>();
@@ -719,7 +722,8 @@ function createRuntime(env: Env): Runtime {
     env.ui.clearInput();
     orb.reset();
     hist.length = 0;
-    geo.pw = pillW(); geo.cw = cardW(); geo.H = homeDy();
+      const width = root.clientWidth || window.innerWidth;
+      geo.pw = pillW(width); geo.cw = cardW(width); geo.H = homeDy();
     resetChannels();
     const pillCh = ["oPill", "oInput", "oGlow", "oAur", "oRing"];
     pillCh.forEach((ch) => setNow(ch, 0));
@@ -744,7 +748,8 @@ function createRuntime(env: Env): Runtime {
     hist.length = 0;
     env.ui.setAnswer("");
     env.ui.resetLabel();
-    geo.pw = pillW(); geo.cw = cardW(); geo.H = homeDy();
+    const width = root.clientWidth || window.innerWidth;
+    geo.pw = pillW(width); geo.cw = cardW(width); geo.H = homeDy();
     resetChannels();
     setNow("pulse", -1);
     busy = false; idling = false;
@@ -759,7 +764,8 @@ function createRuntime(env: Env): Runtime {
     start(text, cfg) {
       if (busy) return false;
       busy = true;
-      geo.pw = pillW(); geo.cw = cardW(); geo.H = homeDy(); // snapshot once, never read layout in frames
+      const width = root.clientWidth || window.innerWidth;
+      geo.pw = pillW(width); geo.cw = cardW(width); geo.H = homeDy(); // snapshot once, never read layout in frames
       geo.dir = -geo.dir;
       orb.reset();
       setNow("u", 0);
@@ -781,7 +787,8 @@ function createRuntime(env: Env): Runtime {
     hard,
     home() {
       if (busy) return;
-      geo.pw = pillW(); geo.cw = cardW(); geo.H = homeDy();
+    const width = root.clientWidth || window.innerWidth;
+    geo.pw = pillW(width); geo.cw = cardW(width); geo.H = homeDy();
       setNow("w", geo.pw);
       setNow("u", 0);
     },
@@ -850,7 +857,7 @@ export default function MorphOrb(props: MorphOrbProps) {
       getSpeed: () => speedRef.current,
       isReduced: () => reducedRef.current,
       ui: {
-        setPhase: (p) => { phaseRef.current = p; setPhaseState(p); },
+        setPhase: (p) => { phaseRef.current = p; setPhaseState(p); propsRef.current.onPhaseChange?.(p); },
         swapLabel: (name) => setLbl((l) => (l.cur === name ? l : { cur: name, prev: l.cur, n: l.n + 1 })),
         resetLabel: () => setLbl((l) => ({ cur: COPY.labels[0]!, prev: null, n: l.n + 1 })),
         setAnswer: (s) => setAnswer(s),
@@ -962,7 +969,7 @@ export default function MorphOrb(props: MorphOrbProps) {
     );
 
   return (
-    <div className="mo-root" data-phase={phase} ref={rootRef}>
+    <div className="mo-root" data-phase={phase} data-show-reset={props.showReset !== false} ref={rootRef}>
       <div className="mo-bg" aria-hidden="true" />
       <div className="mo-halo" aria-hidden="true" />
 
@@ -1033,7 +1040,7 @@ export default function MorphOrb(props: MorphOrbProps) {
         <span key={"c" + lbl.n} className="mo-lab mo-in">{labelInner(lbl.cur)}</span>
       </div>
 
-      <button type="button" className="mo-reset" onClick={onReset}>{COPY.reset}</button>
+      {props.showReset !== false && <button type="button" className="mo-reset" onClick={onReset}>{COPY.reset}</button>}
 
       <div className="mo-live" ref={liveRef} role="status" aria-live="polite" />
 
