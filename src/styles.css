@@ -256,7 +256,7 @@
 .mo-actor { position: relative; width: var(--w, min(560px, calc(100% - 16px))); height: var(--h, 60px); border-radius: var(--r, 999px); transform: translate(-50%,-50%); transform-origin: center; }
 .mo-actor[data-shake] { animation: mo-shake .26s ease; border-color: var(--destructive); }
 .mo-trail { position: absolute; left: 0; top: 0; width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, color-mix(in oklab, white 75%, #aeb9b0), color-mix(in oklab, #aeb9b0 42%, transparent) 58%, transparent 76%); pointer-events: none; }
-.mo-underglow,.mo-halo-green,.mo-surface,.mo-ball,.mo-green,.mo-card,.mo-ring { position: absolute; pointer-events: none; }
+.mo-underglow,.mo-halo-green,.mo-surface,.mo-green,.mo-card,.mo-ring { position: absolute; pointer-events: none; }
 .mo-underglow,.mo-halo-green { display: none; }
 .mo-surface { inset: 0; overflow: hidden; border-radius: inherit; opacity: var(--oPill, 1); background: transparent; border: 0; box-shadow: none; backdrop-filter: none; }
 .mo-aurora { display: none; }
@@ -264,9 +264,8 @@
 .mo-aurora i:nth-child(2) { left: 30%; animation-duration: 9s; animation-direction: alternate-reverse; opacity: .65; }
 .mo-aurora i:nth-child(3) { left: 62%; animation-duration: 11s; opacity: .45; }
 .mo-aurora i:nth-child(4) { right: -12%; animation-duration: 8s; opacity: .35; }
-.mo-ball { left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px; border-radius: 50%; opacity: var(--oBall, 0); background: radial-gradient(circle at 35% 28%, #f4f5ef 0%, #c1c9bf 42%, #7e897e 100%); box-shadow: inset 0 1px 2px rgba(255,255,255,.55), inset 0 -5px 10px rgba(0,0,0,.2); }
-.mo-green { left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px; border-radius: 50%; opacity: var(--oGreen, 0); background: radial-gradient(circle at 35% 30%, #c1ffdc, #36bd79 58%, #0b6f47); box-shadow: 0 0 48px color-mix(in oklab, #35d789 60%, transparent); }
-.mo-card { inset: 0; border-radius: inherit; opacity: var(--oCard, 0); background: color-mix(in oklab, var(--background) 86%, #1c2820); border: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent); box-shadow: 0 28px 70px -28px rgba(0,0,0,.78); backdrop-filter: blur(18px); filter: brightness(var(--bloom,1)); }
+.mo-green { left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px; border-radius: 50%; opacity: var(--oGreen, 0); background: radial-gradient(circle at 35% 30%, #d7ded2, #93a08f 58%, #566153); box-shadow: none; }
+.mo-card { inset: 0; border-radius: inherit; opacity: var(--oCard, 0); background: color-mix(in oklab, #293126 84%, transparent); border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent); box-shadow: 0 14px 36px -28px rgba(0,0,0,.6); backdrop-filter: blur(16px) saturate(.82); filter: brightness(var(--bloom,1)); }
 .mo-ring { display: none; }
 .mo-input { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; gap: .75rem; padding: .65rem .7rem .65rem 1.15rem; border: 1px solid color-mix(in oklab, var(--foreground) 24%, transparent); border-radius: inherit; background: var(--background); opacity: var(--oInput, 1); transform: scale(var(--inScale, 1)); transform-origin: center; box-shadow: 0 12px 32px -24px rgba(0,0,0,.8); backdrop-filter: none; pointer-events: auto; }
 .mo-actor[data-typing] .mo-input { border-color: color-mix(in oklab, var(--foreground) 42%, transparent); box-shadow: 0 12px 32px -24px rgba(0,0,0,.8); }
@@ -279,9 +278,9 @@
 .mo-send[data-ready]:hover { transform: scale(1.08); }
 .mo-orb { position: absolute; z-index: 3; left: 50%; top: 50%; width: min(220px, 62vw); height: min(220px, 62vw); opacity: 1; transform: translate(-50%,-50%); color: var(--primary); pointer-events: none; }
 .mo-pulse { position: absolute; z-index: 2; left: 50%; top: 50%; width: 130px; height: 130px; margin: -65px; border: 1px solid color-mix(in oklab, #6cf0a8 35%, transparent); border-radius: 50%; box-shadow: none; pointer-events: none; }
-.mo-answer { position: absolute; z-index: 4; inset: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding: 1rem clamp(1rem, 4vw, 1.5rem); border-radius: 18px; background: color-mix(in oklab, var(--background) 88%, #17221b); opacity: var(--hOp, 0); pointer-events: none; }
-.mo-a-head { display: flex; align-items: center; gap: .55rem; margin-bottom: .55rem; color: var(--primary); font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.mo-a-dot { width: 7px; height: 7px; border-radius: 50%; background: #64dd9c; box-shadow: 0 0 10px #64dd9c; transform: scale(var(--dotS,1)); }
+.mo-answer { position: absolute; z-index: 4; inset: 0; display: flex; flex-direction: column; justify-content: center; overflow: hidden; padding: 1rem clamp(1rem, 4vw, 1.5rem); border-radius: 18px; background: transparent; opacity: var(--hOp, 0); pointer-events: none; }
+.mo-a-head { display: flex; align-items: center; gap: .55rem; margin-bottom: .55rem; color: color-mix(in oklab, var(--foreground) 74%, transparent); font-size: .75rem; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
+.mo-a-dot { width: 7px; height: 7px; border-radius: 50%; background: #8ca78a; box-shadow: none; transform: scale(var(--dotS,1)); }
 .mo-a-body { display: -webkit-box; overflow: hidden; margin: 0; color: var(--foreground); font-size: clamp(.8rem, 2vw, 1rem); line-height: 1.5; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .mo-w { opacity: 0; filter: blur(4px); transform: translateY(4px); }
 .mo-status { position: relative; z-index: 5; display: flex; min-height: 1.5rem; max-width: 100%; flex: none; justify-content: center; opacity: var(--sOp, 0); transform: translateY(var(--sTy,6px)); white-space: nowrap; }

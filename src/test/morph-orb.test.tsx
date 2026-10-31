@@ -44,6 +44,7 @@ describe("briefing MorphOrb", () => {
     expect(stage).toContainElement(screen.getByRole("textbox", { name: "Sua resposta" }));
     expect(stage).toContainElement(document.querySelector<HTMLCanvasElement>(".mo-orb"));
     expect(stage).toContainElement(document.querySelector<HTMLElement>(".mo-answer"));
+    expect(stage.querySelector(".mo-ball")).toBeNull();
     expect(stage).not.toContainElement(status);
     expect(screen.queryByRole("button", { name: "Nova resposta" })).not.toBeInTheDocument();
   });

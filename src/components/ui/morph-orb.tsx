@@ -31,7 +31,7 @@ const PILL_H = 60, BALL_SMALL = 60, ORB_D = 132, ORB_R = 66, CANVAS = 220;
 const CARD_H = 108;
 const FLY_D = 138;
 const pillW = (containerWidth = window.innerWidth) => Math.min(480, containerWidth - 16);
-const cardW = (containerWidth = window.innerWidth) => Math.min(360, containerWidth - 24);
+const cardW = (containerWidth = window.innerWidth) => Math.min(380, Math.max(0, (containerWidth - 16) * 0.88));
 const homeDy = () => Math.min(48, Math.max(36, window.innerWidth * 0.07));
 
 /* ───────────────────────── math + easing ───────────────────────── */
@@ -109,12 +109,14 @@ const launchTracks = (g: Geo): Track[] => [
   T("h", PILL_H, PILL_H + 6, 380, 500, E.out),
   T("h", PILL_H + 6, BALL_SMALL, 500, 620, E.out),
   T("oPill", 1, 0, 300, 560, E.out),
-  T("oBall", 0, 1, 300, 560, E.out),
   T("u", 0, 1, 620, 1500, E.fly),
   T("w", BALL_SMALL, FLY_D, 620, 1300, E.grow),
   T("h", BALL_SMALL, FLY_D, 620, 1300, E.grow),
   T("w", FLY_D, ORB_D, 1300, 1500, E.out),
   T("h", FLY_D, ORB_D, 1300, 1500, E.out),
+  T("orb.k", 0, 1, 620, 1500, E.out),
+  T("orb.alpha", 0, 1, 620, 1500, E.out),
+  T("orb.spin", 0, 0.55, 620, 1500, E.out),
   T("cHalo", 0, 0.6, 620, 1500, E.out),
   T("trail", 0, 1, 700, 800, E.out),
   T("trail", 1, 0, 1300, 1500, E.in),
@@ -122,10 +124,7 @@ const launchTracks = (g: Geo): Track[] => [
 
 const ASSEMBLE: Track[] = [
   T("oRing", 1, 0, 0, 300, E.out),
-  T("oBall", 1, 0, 0, 260, E.out),
-  T("orb.k", 0, 1, 0, 800, E.out),
-  T("orb.alpha", 0, 1, 0, 800, E.out),
-  T("orb.spin", 0, 0.9, 0, 800, E.out),
+  T("orb.spin", 0.55, 0.9, 0, 800, E.out),
   T("orb.pop", 1, 1.05, 0, 420, E.out),
   T("orb.pop", 1.05, 1, 420, 800, E.io),
   T("sOp", 0, 1, 300, 620, E.out),
@@ -198,10 +197,10 @@ const rCardIn = (tw: number): Track[] => [
   T("bloom", 1, 0.625, 0, 250, E.out),
 ];
 
-const FADE = ["oGlow", "oAur", "oPill", "oBall", "oGreen", "oCard", "oRing", "oInput", "oHalo", "sOp", "orb.alpha", "trail"];
+const FADE = ["oGlow", "oAur", "oPill", "oGreen", "oCard", "oRing", "oInput", "oHalo", "sOp", "orb.alpha", "trail"];
 
 const INIT: Record<string, number> = {
-  h: PILL_H, r: 999, oGlow: 1, oHalo: 0, oPill: 1, oBall: 0, oGreen: 0, oCard: 0, oRing: 1, oInput: 1, inScale: 1, oAur: 1,
+  h: PILL_H, r: 999, oGlow: 1, oHalo: 0, oPill: 1, oGreen: 0, oCard: 0, oRing: 1, oInput: 1, inScale: 1, oAur: 1,
   gs: 0.55, cs: 1, hOp: 0, dotS: 0, bloom: 1, u: 0, yOff: 0, trail: 0, pulse: -1, sOp: 0, sTy: 6, cHalo: 0, wp: 0,
   "orb.k": 0, "orb.alpha": 0, "orb.spin": 0, "orb.pop": 1, "orb.sweep": 0, "orb.vortex": 0, "orb.gain": 1, "orb.floor": 0, "orb.rad": 0,
 };
@@ -532,7 +531,7 @@ function createRuntime(env: Env): Runtime {
   };
 
   /* ── channels ── */
-  ["oGlow", "oHalo", "oPill", "oBall", "oGreen", "oCard", "oRing", "oInput", "oAur", "gs", "cs", "hOp", "dotS", "bloom"].forEach((n) => {
+  ["oGlow", "oHalo", "oPill", "oGreen", "oCard", "oRing", "oInput", "oAur", "gs", "cs", "hOp", "dotS", "bloom"].forEach((n) => {
     CH[n] = (v) => actor.style.setProperty("--" + n, fmt(v));
   });
   ["w", "h", "r"].forEach((n) => {
@@ -985,7 +984,6 @@ export default function MorphOrb(props: MorphOrbProps) {
             <div className="mo-surface" aria-hidden="true">
               <div className="mo-aurora"><i /><i /><i /><i /></div>
             </div>
-            <div className="mo-ball" aria-hidden="true" />
             <div className="mo-green" aria-hidden="true" />
             <div className="mo-card" aria-hidden="true" />
             <div className="mo-ring" aria-hidden="true" />
