@@ -21,7 +21,7 @@ const heroVideoUrls = [
   "https://videos.pexels.com/video-files/35884354/15219737_1440_2560_30fps.mp4",
 ] as const;
 
-function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: boolean }) {
+function SiteVideoBackdrop({ urls, active, opacity = 1 }: { urls: readonly string[]; active: boolean; opacity?: number }) {
   const videos = useRef<Array<HTMLVideoElement | null>>([]);
   const current = useRef(0);
   const incoming = useRef<number | null>(null);
@@ -105,7 +105,7 @@ function SiteVideoBackdrop({ urls, active }: { urls: readonly string[]; active: 
           }}
           className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1250ms] ease-in-out motion-reduce:transition-none"
           style={{
-            opacity: index === incomingLayer || (incomingLayer === null && index === currentLayer) ? 1 : 0,
+            opacity: (index === incomingLayer || (incomingLayer === null && index === currentLayer) ? 1 : 0) * opacity,
             transform: "translate3d(0,0,0)",
             backfaceVisibility: "hidden",
           }}
@@ -204,6 +204,8 @@ function Index() {
   const [step, setStep] = useState(-2);
   const [phase, setPhase] = useState<Phase>("start");
   const [introFading, setIntroFading] = useState(false);
+  const [wordmarkComplete, setWordmarkComplete] = useState(false);
+  const [wordmarkLogoVisible, setWordmarkLogoVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [value, setValue] = useState("");
@@ -225,12 +227,17 @@ function Index() {
   const pendingReplyUrlRef = useRef<string | null>(null);
   const questionAudioActiveRef = useRef(false);
   const startedRef = useRef(false);
+  const wordmarkFinishedRef = useRef(false);
   const showIntro = phase !== "briefing";
   const revealLanding = () => {
     setLandingVisible(true);
     window.requestAnimationFrame(() => window.requestAnimationFrame(() => setLandingFadeIn(true)));
   };
-  const finishWordmark = useCallback(() => setPhase("logo"), []);
+  const finishWordmark = useCallback(() => {
+    if (wordmarkFinishedRef.current) return;
+    wordmarkFinishedRef.current = true;
+    setWordmarkComplete(true);
+  }, []);
 
   // One tap on "Iniciar" starts both soundtracks together: the looping
   // background track and the voice-over. Browsers only allow audible playback
@@ -264,6 +271,21 @@ function Index() {
       window.clearTimeout(finishTimer);
     };
   }, [phase]);
+  useEffect(() => {
+    if (phase !== "writing") return;
+    const fallbackTimer = window.setTimeout(() => setWordmarkComplete(true), 4200);
+    return () => window.clearTimeout(fallbackTimer);
+  }, [phase]);
+  useEffect(() => {
+    if (phase !== "writing" || !wordmarkComplete) return;
+    const waitTimer = window.setTimeout(() => setWordmarkLogoVisible(true), 1000);
+    return () => window.clearTimeout(waitTimer);
+  }, [phase, wordmarkComplete]);
+  useEffect(() => {
+    if (phase !== "writing" || !wordmarkLogoVisible) return;
+    const crossfadeTimer = window.setTimeout(() => setPhase("logo"), 900);
+    return () => window.clearTimeout(crossfadeTimer);
+  }, [phase, wordmarkLogoVisible]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const voiceRecognitionRef = useRef<VoiceRecognition | null>(null);
   const voiceBaseValueRef = useRef("");
@@ -563,7 +585,8 @@ function Index() {
       <style>{`@keyframes africaTypewriterCaret { 50% { opacity: 0; } } .africa-typewriter-caret { display: inline-block; width: .065em; height: .82em; margin-left: .08em; vertical-align: -.04em; background: currentColor; animation: africaTypewriterCaret .85s steps(2, start) infinite; } @media (prefers-reduced-motion: reduce) { .africa-typewriter-caret { animation: none; } }`}</style>
       <SiteVideoBackdrop
         urls={phase === "briefing" ? heroVideoUrls : introVideoUrls}
-        active={phase === "narrating" || phase === "logo" || (phase === "briefing" && !landingVisible)}
+        active={phase === "narrating" || phase === "writing" || phase === "logo" || (phase === "briefing" && !landingVisible)}
+        opacity={phase === "briefing" && !landingVisible ? 0.9 : 1}
       />
       <audio ref={musicRef} src={backgroundTrack} loop preload="none" onPlay={() => setMusicPlaying(true)} onPause={() => setMusicPlaying(false)} />
       <audio ref={narrationRef} src={narrationUrl} preload="auto" />
@@ -578,14 +601,23 @@ function Index() {
             role="img"
             aria-label="AFRICA"
             text="AFRICA"
-            className="w-[min(88vw,1024px)] font-display font-semibold"
+            className={`w-[min(88vw,1024px)] font-display font-semibold transition-opacity duration-900 ease-in-out ${wordmarkLogoVisible ? "opacity-0" : "opacity-100"}`}
             fontSize={160}
             strokeWidth={1.7}
             letterSpacing={4}
             wordSpacing={18}
             color="#ffffff"
             oneByOne={false}
+            aria-hidden={wordmarkLogoVisible}
             onDrawComplete={finishWordmark}
+          />
+          <img
+            src={introLogo}
+            alt="Logo oficial da Agência AFRICA"
+            aria-hidden={!wordmarkLogoVisible}
+            fetchPriority="high"
+            decoding="async"
+            className={`absolute h-[min(76svh,680px)] w-auto max-w-[82vw] object-contain transition-opacity duration-900 ease-in-out ${wordmarkLogoVisible ? "opacity-100" : "opacity-0"}`}
           />
         </div>
       )}
