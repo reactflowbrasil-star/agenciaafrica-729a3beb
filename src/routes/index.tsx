@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { getNarrationFrame } from "@/lib/narration";
+import { getAudioTypewriterProgress, getNarrationFrame } from "@/lib/narration";
 import { Button } from "@/components/ui/button";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 import OrbAnswerInput from "@/components/ui/ai-thinking-orb-and-input";
@@ -522,7 +522,7 @@ function Index() {
     let revealed = -1;
     const syncTypewriterToAudio = () => {
       if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
-      const next = Math.min(1, (audio.currentTime / audio.duration) * 1.22);
+      const next = getAudioTypewriterProgress(audio.currentTime, audio.duration);
       const characters = Math.floor(next * headingChars);
       if (next < 1 && characters === revealed) return;
       revealed = characters;
@@ -893,7 +893,7 @@ function Em({ text, progress }: { text: string; progress?: number }) {
       <span className="sr-only">{plainText}</span>
       <span aria-hidden="true">
         {typedSegments}
-        <span className="africa-typewriter-caret" />
+        {visibleCharacters < totalCharacters && <span className="africa-typewriter-caret" />}
       </span>
     </>
   );
@@ -901,7 +901,7 @@ function Em({ text, progress }: { text: string; progress?: number }) {
 
 /* Voice-over intro: types each phrase word by word in sync with the narration audio. */
 function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement | null>; onDone: () => void }) {
-  const [t, setT] = useState(0);
+  const [frame, setFrame] = useState(() => getNarrationFrame(0));
   const [blocked, setBlocked] = useState(false);
   const [fading, setFading] = useState(false);
   const doneRef = useRef(false);
@@ -916,7 +916,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     const finish = () => {
       if (doneRef.current) return;
       doneRef.current = true;
-      setT(Number.MAX_SAFE_INTEGER);
+      setFrame(getNarrationFrame(Number.MAX_SAFE_INTEGER, Number.isFinite(audio.duration) ? audio.duration : undefined));
       setFading(true);
       window.setTimeout(() => onDoneRef.current(), 800);
     };
@@ -945,7 +945,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
       const frameKey = frame.fullText + "::" + frame.typed;
       if (frameKey !== lastFrameKey) {
         lastFrameKey = frameKey;
-        setT(time);
+        setFrame(frame);
       }
       // Safety net: if the voice-over never actually started, offer a retry.
       const silent = audio.paused && performance.now() - beganAt > 2500;
@@ -966,7 +966,8 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
     audioRef.current?.play().then(() => setBlocked(false)).catch(() => {});
   };
 
-  const { fullText, typed } = getNarrationFrame(t);
+  const { fullText, typed } = frame;
+  const isTyping = typed < fullText.length;
 
   return (
     <div className={`fixed inset-0 z-[55] flex items-center justify-center bg-black/40 px-6 transition-opacity duration-700 ${fading ? "opacity-0" : "opacity-100"}`}>
@@ -977,7 +978,7 @@ function Narration({ audioRef, onDone }: { audioRef: RefObject<HTMLAudioElement 
       ) : (
         <p aria-live="polite" className="max-w-4xl text-balance text-center text-3xl font-extralight leading-tight tracking-[-0.02em] text-white sm:text-6xl">
           <span>{fullText.slice(0, typed)}</span>
-          <span aria-hidden="true" className="africa-typewriter-caret" />
+          {isTyping && <span aria-hidden="true" className="africa-typewriter-caret" />}
           {/* Untyped rest is kept invisible so lines never re-wrap while typing. */}
           <span aria-hidden="true" className="opacity-0">{fullText.slice(typed)}</span>
         </p>
